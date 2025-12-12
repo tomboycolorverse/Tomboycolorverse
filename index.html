@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tomboy Colorverse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+    <script>
+        UPLOADCARE_PUBLIC_KEY = '4ab28e5e4c18795eed30';
+        UPLOADCARE_TABS = 'file camera url facebook instagram';
+        UPLOADCARE_LOCALE = 'en';
+        UPLOADCARE_LIVE = false;
+        UPLOADCARE_MANUAL_START = true;
+    </script>
+    <script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #050505; 
+            color: white; 
+            padding-bottom: 120px; 
+            -webkit-tap-highlight-color: transparent; 
+            background-size: cover; 
+            background-position: center; 
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+        
+        /* FULL SCREEN LOGIN PAGE */
+        #auth-overlay {
+            position: fixed; inset: 0; z-index: 100000;
+            background: black;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        /* FEED LAYOUT */
+        .masonry-grid { column-count: 2; column-gap: 12px; }
+        .break-inside-avoid { break-inside: avoid; margin-bottom: 12px; }
+        .uploadcare--widget { display: none !important; }
+
+        /* RAINBOW ANIMATIONS */
+        .rainbow-text { 
+            background: linear-gradient(90deg, #ff00cc, #bd00ff, #00d4ff, #00ff00, #ffff00, #ff0000); 
+            background-size: 200%; -webkit-background-clip: text; color: transparent; animation: holo 3s linear infinite; 
+        }
+        .rainbow-border {
+            position: relative; z-index: 0; border-radius: 50%;
+        }
+        .rainbow-border::before {
+            content: ""; position: absolute; inset: -3px; border-radius: 50%; 
+            background: linear-gradient(90deg, #ff00cc, #bd00ff, #00d4ff, #00ff00, #ffff00, #ff0000);
+            background-size: 200%; animation: holo 2s linear infinite; z-index: -1;
+        }
+        @keyframes holo { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+        /* NEON BUTTONS */
+        .neon-btn {
+            background: linear-gradient(90deg, #ff00cc, #bd00ff, #00d4ff);
+            color: black; font-weight: 900; border-radius: 999px; padding: 12px; width: 100%;
+            font-size: 11px; text-transform: uppercase; box-shadow: 0 0 15px rgba(255, 0, 204, 0.3); border: 2px solid white;
+            display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: transform 0.1s;
+        }
+        .neon-btn:active { transform: scale(0.95); opacity: 0.9; }
+        
+        /* COLORS */
+        .music-btn { background: #ff00cc; border: 2px solid #fff; color: white; }
+        .youtube-btn { background: #FF0000; border: 2px solid #fff; color: white; }
+        .gif-btn { background: #9d4edd; border: 2px solid #fff; color: white; }
+        .sticker-btn { background: #00e5ff; border: 2px solid #fff; color: black; }
+        .chat-btn { background: #3b82f6; border: 2px solid #fff; color: white; }
+        .bot-btn { background: #10b981; border: 2px solid #fff; color: black; }
+        .ai-btn { background: linear-gradient(45deg, #FFD700, #FF8C00); border: 2px solid #fff; color: black; }
+        .quote-btn { background: #222; border: 2px solid #555; color: white; }
+        .draw-btn { background: #fff; border: 2px solid #ccc; color: black; }
+        .web-btn { background: #fff; border: 2px solid #000; color: black; }
+        .game-btn { background: #4ade80; border: 2px solid #fff; color: black; }
+        .bowl-btn { background: #f59e0b; border: 2px solid #fff; color: black; }
+
+        /* MODALS */
+        .modal-overlay { 
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); 
+            position: fixed; inset: 0; z-index: 9999; 
+            display: flex; align-items: center; justify-content: center; padding: 20px; 
+        }
+        .modal-box {
+            width: 100%; max-width: 360px; max-height: 85vh; overflow-y: auto; 
+            border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative;
+        }
+        .hidden { display: none !important; }
+        
+        /* STORIES */
+        .stories-container { display: flex; gap: 15px; overflow-x: auto; padding: 15px 5px; scrollbar-width: none; align-items: flex-start; }
+        .stories-container::-webkit-scrollbar { display: none; }
+        .story-wrapper { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 70px; flex-shrink: 0; }
+        .story-ring { width: 65px; height: 65px; border-radius: 50%; padding: 3px; position: relative; cursor: pointer; flex-shrink: 0; }
+        .story-ring img, .story-ring video { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #000; background: #222; display: block; }
+        
+        /* STORY VIEWER */
+        #story-viewer { position: fixed; inset: 0; z-index: 20000; background: black; display: flex; flex-direction: column; }
+        #story-progress-container { position: absolute; top: 10px; left: 0; width: 100%; padding: 0 5px; display: flex; gap: 4px; z-index: 20001; }
+        .story-dash { flex: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
+        .story-fill { height: 100%; background: white; width: 0%; }
+        
+        /* BIG POST VIEWER */
+        #post-view-modal { z-index: 15000; }
+        .post-big-img { max-height: 60vh; width: 100%; object-fit: contain; background: black; }
+        
+        /* ONLINE STATUS */
+        .online-dot { width: 10px; height: 10px; background: #10b981; border-radius: 50%; border: 2px solid black; position: absolute; bottom: 0; right: 0; }
+        .offline-dot { width: 10px; height: 10px; background: #6b7280; border-radius: 50%; border: 2px solid black; position: absolute; bottom: 0; right: 0; }
+
+        /* GAMES & CHAT */
+        #golf-canvas, #bowl-canvas { border-radius: 12px; border: 2px solid #333; touch-action: none; background-size: cover; width: 100%; height: auto; aspect-ratio: 3/4; }
+        #chat-history, #bot-history { height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .chat-bubble { padding: 10px 14px; border-radius: 16px; font-size: 13px; max-width: 85%; word-wrap: break-word; }
+        .chat-mine { align-self: flex-end; background: #00d4ff; color: black; }
+        .chat-theirs { align-self: flex-start; background: #222; color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-overlay" class="">
+        <div class="text-center p-8 max-w-md w-full">
+            <h1 class="text-5xl font-black mb-2 uppercase rainbow-text tracking-tighter" style="line-height: 1;">Tomboy<br>Colorverse</h1>
+            <p class="text-gray-400 text-sm mb-12">The Creative Universe.</p>
+            
+            <div class="flex flex-col gap-4">
+                <button onclick="window.triggerLogin()" class="w-full py-4 rounded-full text-xl font-bold bg-white text-black hover:scale-105 transition-transform">Log In</button>
+                <button onclick="window.triggerSignup()" class="w-full py-4 rounded-full text-xl font-bold border-2 border-white text-white hover:scale-105 transition-transform">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="p-4 flex justify-between items-center sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-gray-800">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded bg-gradient-to-tr from-pink-500 to-yellow-400 flex items-center justify-center font-black text-xs text-black">LV</div>
+            <h1 class="font-black text-lg tracking-tighter rainbow-text uppercase">Tomboy Colorverse</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="relative cursor-pointer" onclick="window.openNotifications()">
+                <i class="fa-regular fa-bell text-xl text-white"></i>
+                <div id="notif-badge" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+            </div>
+            <button onclick="window.logout()" class="text-xs font-bold text-red-500 border border-red-900 px-3 py-1 rounded-full">Exit</button>
+        </div>
+    </header>
+
+    <div class="px-4 mt-6 mb-8">
+        <div class="bg-[#111] p-5 rounded-3xl border border-gray-800 text-center shadow-[0_0_25px_rgba(255,0,204,0.1)]">
+            <h2 class="text-lg font-bold mb-4 text-gray-200">Create & Connect</h2>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <button onclick="window.launchFeedUpload()" class="neon-btn"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Feed</button>
+                <button onclick="window.openDrawer()" class="neon-btn draw-btn"><i class="fa-solid fa-paintbrush"></i> Draw</button>
+            </div>
+            <div class="grid grid-cols-4 gap-2 mb-2">
+                <button onclick="window.openQuoteStudio()" class="neon-btn quote-btn"><i class="fa-solid fa-pen"></i> Quote</button>
+                <button onclick="window.openAIModal()" class="neon-btn ai-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> AI</button>
+                <button onclick="window.openMusicModal()" class="neon-btn music-btn"><i class="fa-solid fa-music"></i> Sonic</button>
+                <button onclick="window.openBotChat()" class="neon-btn bot-btn"><i class="fa-solid fa-robot"></i> Bot</button>
+            </div>
+            <div class="grid grid-cols-4 gap-2 mb-2">
+                <button onclick="window.openYouTube()" class="neon-btn youtube-btn"><i class="fa-brands fa-youtube"></i> Tube</button>
+                <button onclick="window.openGIFModal()" class="neon-btn gif-btn"><i class="fa-solid fa-face-grin-tears"></i> GIF</button>
+                <button onclick="window.openStickerModal()" class="neon-btn sticker-btn"><i class="fa-solid fa-note-sticky"></i> Sticker</button>
+                <button onclick="window.openWebModal()" class="neon-btn web-btn"><i class="fa-solid fa-globe"></i> Web</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="window.openGroupChat()" class="neon-btn chat-btn"><i class="fa-solid fa-comments"></i> Chat</button>
+                <button onclick="window.openGolfGame()" class="neon-btn game-btn"><i class="fa-solid fa-golf-ball-tee"></i> Golf</button>
+                <button onclick="window.openBowlingGame()" class="neon-btn bowl-btn"><i class="fa-solid fa-bowling-ball"></i> Bowl</button>
+            </div>
+            <input type="hidden" role="uploadcare-uploader" id="feed-widget" />
+            <input type="hidden" role="uploadcare-uploader" id="story-widget" />
+            <input type="hidden" role="uploadcare-uploader" id="avatar-widget" />
+        </div>
+    </div>
+
+    <div class="px-4 mb-2">
+        <h2 class="text-xs font-bold text-gray-400 mb-1 uppercase tracking-widest">Stories</h2>
+        <div class="stories-container" id="stories-list">
+            <div class="story-wrapper">
+                <div class="add-story-btn cursor-pointer" onclick="window.launchStoryUpload()"><i class="fa-solid fa-plus"></i></div>
+                <span class="text-[10px] text-gray-400">Add</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-4 mb-4 flex justify-between items-end">
+        <h2 class="text-xl font-bold text-white">Feed</h2>
+        <span class="text-xs text-green-500 animate-pulse font-bold">● LIVE</span>
+    </div>
+    <div class="px-4 pb-24 masonry-grid" id="feed-grid"></div>
+
+    <div id="story-viewer" class="hidden">
+        <div id="story-progress-container"><div class="story-dash"><div class="story-fill" id="story-timer-bar"></div></div></div>
+        <div class="absolute top-4 left-4 z-50 flex items-center gap-2">
+            <img id="story-view-avatar" src="" class="w-8 h-8 rounded-full border border-white">
+            <span id="story-view-author" class="text-white font-bold text-sm shadow-black drop-shadow-md">User</span>
+        </div>
+        <button onclick="window.deleteCurrentStory()" id="story-delete-btn" class="absolute top-4 right-14 text-red-500 z-50 text-xl hidden"><i class="fa-solid fa-trash"></i></button>
+        <button onclick="window.closeStory()" class="absolute top-4 right-4 text-white z-50 text-2xl drop-shadow-md"><i class="fa-solid fa-xmark"></i></button>
+        <div class="absolute inset-0 flex z-40"><div class="w-1/3 h-full" onclick="window.prevStory()"></div><div class="w-2/3 h-full" onclick="window.nextStory()"></div></div>
+        <div id="story-content-container" class="flex-1 flex items-center justify-center bg-black h-full w-full"></div>
+    </div>
+
+    <div id="post-view-modal" class="hidden modal-overlay">
+        <div class="bg-[#111] w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
+            <div class="p-3 border-b border-gray-800 flex justify-between items-center">
+                <div class="flex items-center gap-2 cursor-pointer" id="view-post-header">
+                    <img id="view-post-avatar" src="" class="w-8 h-8 rounded-full">
+                    <span id="view-post-author" class="text-white font-bold text-sm">User</span>
+                </div>
+                <button onclick="document.getElementById('post-view-modal').classList.add('hidden')" class="text-gray-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="view-post-content" class="bg-black flex-1 flex items-center justify-center overflow-auto"></div>
+            <div class="p-3 border-t border-gray-800 bg-[#111]">
+                <div class="flex gap-4 text-2xl mb-2 text-white">
+                    <i class="fa-regular fa-heart cursor-pointer hover:text-pink-500" onclick="window.toggleEmojiPicker()"></i>
+                    <i class="fa-regular fa-comment cursor-pointer hover:text-blue-500" onclick="window.toggleComments()"></i>
+                </div>
+                <div id="emoji-picker" class="hidden flex gap-2 overflow-x-auto pb-2 mb-2">
+                    <button onclick="window.addReaction('🔥')" class="text-2xl">🔥</button>
+                    <button onclick="window.addReaction('❤️')" class="text-2xl">❤️</button>
+                    <button onclick="window.addReaction('😍')" class="text-2xl">😍</button>
+                    <button onclick="window.addReaction('😂')" class="text-2xl">😂</button>
+                    <button onclick="window.addReaction('🦄')" class="text-2xl">🦄</button>
+                    <button onclick="window.addReaction('🐶')" class="text-2xl">🐶</button>
+                    <input type="text" placeholder="+" class="w-8 bg-gray-800 text-white text-center rounded" maxlength="2" onchange="window.addReaction(this.value)">
+                </div>
+                <p id="view-post-caption" class="text-sm text-gray-300 font-bold mb-1"></p>
+                <p id="view-post-reactions" class="text-xs text-gray-500 mb-2"></p>
+                <div id="comments-section" class="hidden border-t border-gray-800 pt-2">
+                    <div id="comments-list" class="max-h-32 overflow-y-auto text-xs text-gray-300 mb-2 space-y-1"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="comment-input" placeholder="Add a comment..." class="flex-1 bg-gray-900 border border-gray-700 rounded px-2 text-xs h-8 text-white">
+                        <button onclick="window.addComment()" class="text-blue-500 font-bold text-xs uppercase">Post</button>
+                    </div>
+                </div>
+                <p id="view-post-time" class="text-[10px] text-gray-600 mt-1 uppercase">2 hours ago</p>
+                <input type="hidden" id="current-viewing-id">
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="hidden modal-overlay">
+        <div class="bg-[#111] border border-pink-500 rounded-3xl w-full max-w-md modal-box flex flex-col relative">
+            <div class="p-6 pb-2 text-center">
+                <button onclick="window.toggleProfile()" class="absolute top-4 right-4 text-gray-400 p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <div class="relative inline-block">
+                    <div onclick="window.triggerAvatarUpload()" class="cursor-pointer">
+                        <img id="profile-img-large" src="" class="w-24 h-24 rounded-full border-4 border-pink-500 object-cover mx-auto mb-4">
+                    </div>
+                    <div class="online-dot w-4 h-4 right-2 bottom-4 border-4 border-[#111]"></div>
+                </div>
+                <div class="flex items-center justify-center gap-2 mb-2">
+                    <input type="text" id="profile-name-input" class="bg-transparent text-2xl font-bold text-white text-center w-40 border-b border-gray-700 focus:border-pink-500 outline-none" value="Guest">
+                    <button onclick="window.saveProfileName()" class="text-pink-500 text-xs font-bold uppercase border border-pink-500 px-2 py-1 rounded">Save</button>
+                </div>
+                <button onclick="window.openDMs()" id="dm-btn" class="hidden w-full bg-blue-600 text-white py-2 rounded-full font-bold mb-4">Message</button>
+            </div>
+            <div class="flex border-b border-gray-800">
+                <button onclick="window.switchProfileTab('posts')" class="flex-1 py-3 text-sm font-bold text-pink-500 border-b-2 border-pink-500" id="tab-btn-posts">Posts</button>
+                <button onclick="window.switchProfileTab('settings')" class="flex-1 py-3 text-sm font-bold text-gray-500" id="tab-btn-settings">Settings</button>
+            </div>
+            <div class="flex-1 bg-black p-2 rounded-b-3xl min-h-[300px]">
+                <div id="profile-tab-posts" class="grid grid-cols-2 gap-2"></div>
+                <div id="profile-tab-settings" class="hidden p-4 text-left">
+                     <p class="text-xs text-gray-400 mb-1 font-bold uppercase text-center">AI Wallpaper (HD)</p>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="wall-prompt" placeholder="Describe wallpaper..." class="flex-1 bg-gray-900 border border-gray-600 rounded px-2 text-white text-xs h-10">
+                        <button id="wall-btn" onclick="window.generateAIWallpaper()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold px-3 rounded h-10 text-xs">CREATE</button>
+                    </div>
+                    <div class="h-px bg-gray-800 my-3"></div>
+                    <button onclick="document.getElementById('bg-file').click()" class="w-full bg-gray-800 text-white py-2 rounded-lg mb-3 text-xs font-bold border border-gray-700">📂 Upload BG</button>
+                    <input type="file" id="bg-file" accept="image/*" class="hidden" onchange="window.uploadTheme(this)">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dm-modal" class="hidden modal-overlay">
+        <div class="bg-[#111] border border-blue-500 rounded-2xl p-4 w-full max-w-sm modal-box flex flex-col h-[500px]">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+                <h3 class="text-blue-400 font-bold" id="dm-recipient-name">Chat</h3>
+                <button onclick="document.getElementById('dm-modal').classList.add('hidden')" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="dm-history" class="flex-1 overflow-y-auto mb-2 pr-1 space-y-2"></div>
+            <div class="flex gap-2">
+                <input type="text" id="dm-input" placeholder="Message..." class="flex-1 bg-gray-900 text-white rounded-full px-4 py-2 border border-gray-700">
+                <button onclick="window.sendDM()" class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notif-modal" class="hidden modal-overlay">
+        <div class="bg-[#111] border border-gray-600 rounded-2xl p-4 w-full max-w-sm modal-box">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-white font-bold">Notifications</h3><button onclick="document.getElementById('notif-modal').classList.add('hidden')" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div>
+            <div id="notif-list" class="space-y-2 text-sm text-gray-300"></div>
+        </div>
+    </div>
+
+    <div id="gif-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-purple-500 rounded-2xl p-6 w-full max-w-sm modal-box text-center"><h3 class="text-purple-400 font-bold text-2xl mb-4">GIFs</h3><div class="flex gap-2 mb-4"><input type="text" id="gif-search" placeholder="Search..." class="flex-1 bg-black border border-gray-700 rounded px-3 py-2 text-white"><button onclick="window.searchGIF()" class="bg-purple-600 text-white px-3 rounded font-bold">GO</button></div><div id="gif-results" class="bg-black p-2 rounded mb-4 flex flex-wrap justify-center text-gray-500 text-xs gap-1"></div><button onclick="window.closeGIF()" class="w-full bg-gray-800 text-white py-2 rounded">Cancel</button></div></div>
+    <div id="sticker-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-cyan-400 rounded-2xl p-4 w-full max-w-sm modal-box text-center"><h3 class="text-cyan-400 font-bold text-lg mb-2">Sticker</h3><div class="flex gap-2 mb-2"><input type="text" id="sticker-prompt" placeholder="Type: 'Neon Cat'..." class="flex-1 bg-black border border-gray-700 rounded px-2 text-white text-xs"><button onclick="window.generateStickerAI()" class="bg-cyan-600 text-white px-2 rounded font-bold text-xs min-w-[50px]">AI</button></div><img id="sticker-preview-img" class="w-48 h-48 object-contain mx-auto mb-2 border border-gray-800 bg-transparent"><div class="flex gap-2"><button onclick="window.postSticker('feed')" class="flex-1 bg-gray-800 text-white py-2 rounded">FEED</button><button onclick="window.postSticker('story')" class="flex-1 bg-cyan-400 text-black font-bold py-2 rounded">STORY</button></div><button onclick="window.closeStickerModal()" class="w-full mt-2 text-gray-500 text-xs">Cancel</button></div></div>
+    <div id="ai-modal" class="hidden modal-overlay"><div class="bg-[#222] border-2 border-yellow-500 rounded-2xl p-6 w-full max-w-sm modal-box text-center"><h3 class="text-2xl font-bold text-yellow-500 mb-2">AI Art</h3><input type="text" id="ai-prompt" placeholder="Describe..." class="w-full bg-black border border-gray-600 rounded-lg p-3 text-white mb-4"><div class="flex gap-2"><button onclick="window.submitAI('feed')" class="flex-1 bg-gray-800 text-white py-2 rounded font-bold">FEED</button><button onclick="window.submitAI('story')" class="flex-1 bg-yellow-500 text-black py-2 rounded font-bold">STORY</button></div><button onclick="window.closeAIModal()" class="w-full mt-2 text-gray-400 text-sm">Cancel</button></div></div>
+    <div id="music-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-pink-500 rounded-2xl p-5 w-full max-w-sm modal-box text-center flex flex-col"><h3 class="text-pink-500 font-bold text-2xl mb-2">Sonic</h3><div id="music-view-search" class="music-section flex-1 flex flex-col text-left"><div class="bg-gray-900 p-3 rounded-lg mb-4"><p class="text-gray-400 text-xs mb-2 text-center">YouTube Link:</p><div class="flex gap-2 mb-2"><input type="text" id="music-link-input" placeholder="https://..." class="flex-1 bg-black border border-gray-700 rounded px-2 text-white text-xs h-10"><button onclick="window.previewMusicLink()" class="bg-white text-black font-bold px-3 rounded text-xs h-10">LOAD</button></div></div><div id="music-player-preview" class="w-full h-32 bg-black mb-2 rounded border border-gray-700 flex items-center justify-center text-gray-500 text-xs relative overflow-hidden"><p>Preview</p></div><div class="flex gap-2 mt-auto"><input type="text" id="music-post-caption" placeholder="Title" class="flex-1 bg-black border border-gray-700 rounded px-2 text-white text-xs h-10"><button onclick="window.postMusicLink('feed')" class="bg-gray-800 text-white font-bold px-3 rounded text-xs h-10">FEED</button><button onclick="window.postMusicLink('story')" class="bg-pink-500 text-white font-bold px-3 rounded text-xs h-10">STORY</button></div></div><button onclick="window.closeMusicModal()" class="mt-4 text-xs text-gray-500 w-full py-2">Close</button></div></div>
+    <div id="youtube-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-red-600 rounded-2xl p-6 w-full max-w-sm modal-box text-center"><h3 class="text-red-500 font-bold text-2xl mb-4">YouTube</h3><input type="text" id="yt-url" placeholder="Paste link..." class="w-full bg-black border border-gray-700 rounded-lg px-3 py-2 text-white mb-2"><button onclick="window.previewYT()" class="w-full bg-gray-700 text-white px-3 rounded font-bold mb-3">Check</button><div id="yt-preview" class="w-full aspect-video bg-black mb-4 rounded border border-gray-800 flex items-center justify-center text-gray-600 text-xs">Preview</div><input type="text" id="yt-caption" placeholder="Caption..." class="w-full bg-black border border-gray-700 rounded-lg px-3 py-2 text-white mb-4"><div class="flex gap-2"><button onclick="window.postYouTube('feed')" class="flex-1 bg-gray-800 text-white font-bold py-2 rounded">FEED</button><button onclick="window.postYouTube('story')" class="flex-1 bg-white text-black font-bold py-2 rounded">STORY</button></div><button onclick="window.closeYouTube()" class="w-full mt-2 text-gray-500 text-xs">Cancel</button></div></div>
+    <div id="draw-modal" class="hidden modal-overlay"><div class="bg-white rounded-xl p-2 w-full max-w-sm modal-box relative flex flex-col"><div class="flex justify-between items-center mb-2 px-2"><h3 class="text-black font-bold">Draw</h3><button onclick="window.closeDrawer()" class="text-black"><i class="fa-solid fa-xmark"></i></button></div><div class="flex-1 relative bg-gray-100 border-2 border-gray-300 rounded-lg overflow-hidden touch-none h-[300px]"><canvas id="draw-canvas" class="w-full h-full cursor-crosshair"></canvas></div><div class="flex flex-col gap-2 mt-2 px-2 pb-2"><div class="flex justify-between items-center bg-gray-100 p-2 rounded-lg"><button onclick="window.setBrushMode('brush')" class="w-8 h-8 bg-black text-white rounded flex items-center justify-center"><i class="fa-solid fa-paintbrush"></i></button><button onclick="window.setBrushMode('eraser')" class="w-8 h-8 bg-white border border-gray-300 rounded flex items-center justify-center text-red-500"><i class="fa-solid fa-eraser"></i></button><input type="color" id="color-picker" class="w-8 h-8 border-none rounded cursor-pointer" value="#000000" onchange="window.updatePen()"><button onclick="window.undoDraw()" class="w-8 h-8 bg-gray-300 rounded flex items-center justify-center"><i class="fa-solid fa-rotate-left"></i></button></div><div class="flex gap-2"><button onclick="window.saveDrawing('feed')" class="flex-1 bg-black text-white text-xs py-3 rounded font-bold">FEED</button><button onclick="window.saveDrawing('story')" class="flex-1 bg-gray-200 text-black text-xs py-3 rounded font-bold">STORY</button></div></div></div></div>
+    <div id="quote-modal" class="hidden modal-overlay"><div class="bg-[#1a1a1a] border-2 border-white rounded-2xl p-6 w-full max-w-sm modal-box"><h3 class="text-white font-bold text-lg mb-4 text-center">Quote</h3><div id="quote-preview-area" class="w-full bg-black border border-gray-700 rounded-xl p-4 mb-4 min-h-[100px] flex items-center justify-center text-center"><p id="quote-preview-text" class="text-white text-xl font-bold" style="font-family: 'Permanent Marker'">Preview...</p></div><textarea id="quote-text" placeholder="Type vibe..." class="w-full bg-black border border-gray-700 text-white rounded-xl p-4 mb-4 h-24" oninput="window.updateQuotePreview()"></textarea><p class="text-xs text-gray-500 mb-2">Color & BG:</p><div class="flex gap-2 mb-4"><button onclick="window.setQuoteStyle('rainbow')" class="flex-1 h-8 rounded bg-gradient-to-r from-pink-500 to-yellow-500 border border-gray-600"></button><button onclick="window.setQuoteStyle('white')" class="flex-1 h-8 rounded bg-white border border-gray-600"></button><input type="color" class="flex-1 h-8 rounded border border-gray-600" onchange="window.setQuoteBg('color', this.value)"></div><div class="flex gap-2"><button onclick="window.publishQuote('feed')" class="flex-1 bg-gray-800 text-white py-2 rounded font-bold">FEED</button><button onclick="window.publishQuote('story')" class="flex-1 bg-white text-black py-2 rounded font-bold">STORY</button></div><button onclick="window.closeQuoteStudio()" class="w-full mt-2 text-gray-500 text-xs">Cancel</button></div></div>
+    <div id="web-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-white rounded-2xl p-6 w-full max-w-sm modal-box text-center"><h3 class="text-white font-bold text-2xl mb-2">Web</h3><input type="text" id="web-search-term" placeholder="Search..." class="w-full bg-gray-900 border border-gray-700 rounded px-4 py-3 text-white mb-4 font-bold"><div class="grid grid-cols-2 gap-3 mb-4"><button onclick="window.launchWeb('google')" class="bg-[#4285F4] text-white py-4 rounded-xl font-bold text-sm">Google</button><button onclick="window.launchWeb('images')" class="bg-[#EA4335] text-white py-4 rounded-xl font-bold text-sm">Images</button><button onclick="window.launchWeb('pinterest')" class="bg-[#E60023] text-white py-4 rounded-xl font-bold text-sm">Pinterest</button><button onclick="window.launchWeb('tiktok')" class="bg-[#000] border border-gray-600 text-white py-4 rounded-xl font-bold text-sm">TikTok</button></div><button onclick="window.closeWebModal()" class="w-full bg-gray-800 text-white py-3 rounded-xl font-bold text-xs mt-2">Close</button></div></div>
+    <div id="bot-chat-modal" class="hidden modal-overlay"><div class="bg-[#111] border border-green-500 rounded-2xl p-4 w-full max-w-sm modal-box flex flex-col"><div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2"><h3 class="text-green-400 font-bold">Emerald</h3><button onclick="window.closeBotChat()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><div id="bot-history" class="flex-1 overflow-y-auto mb-2 text-sm text-gray-300"><div class="chat-bubble chat-theirs">Hi! Ask me anything.</div></div><div class="flex gap-2"><button onclick="window.triggerBotUpload()" class="bg-gray-800 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-image"></i></button><input type="text" id="bot-input" class="flex-1 bg-gray-900 text-white rounded-full px-4 py-2 border border-gray-700"><button onclick="window.sendBotMessage()" class="bg-green-500 text-black w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button></div></div></div><input type="hidden" role="uploadcare-uploader" id="bot-upload-widget" />
+    <div id="group-chat-modal" class="hidden modal-overlay"><div class="bg-[#111] border border-blue-500 rounded-2xl p-4 w-full max-w-sm modal-box flex flex-col h-[500px]"><div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2"><h3 class="text-blue-400 font-bold">Lounge</h3><button onclick="window.closeGroupChat()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><div id="group-chat-history" class="flex-1 overflow-y-auto mb-2 pr-1"></div><div class="flex gap-2"><input type="text" id="group-chat-input" placeholder="Message..." class="flex-1 bg-gray-900 text-white rounded-full px-4 py-2 border border-gray-700"><button onclick="window.sendGroupMessage()" class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button></div></div></div>
+    <div id="golf-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-green-500 rounded-2xl p-4 w-full max-w-sm modal-box text-center relative flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-green-400 font-bold text-xl">Neon Golf</h3><button onclick="window.closeGolfGame()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><div id="golf-menu" class="flex-1 flex flex-col justify-center gap-3"><button onclick="window.startGolfGame()" class="w-full bg-green-500 text-black font-black py-4 rounded-xl text-lg shadow-lg">PLAY</button><div class="mt-4"><p class="text-xs text-gray-400 font-bold uppercase mb-2">Leaderboard</p><div id="golf-leaderboard" class="text-xs text-left bg-black p-2 rounded h-24 overflow-y-auto border border-gray-800"></div></div></div><div id="golf-game-area" class="hidden flex-1 flex flex-col items-center"><div class="flex justify-between text-xs text-white mb-2 px-2 w-full"><span id="golf-level-display">Hole 1</span><span id="golf-score-display">0</span></div><canvas id="golf-canvas" width="300" height="400"></canvas><button onclick="window.resetGolfLevel()" class="mt-2 bg-gray-800 text-white py-2 rounded text-xs w-full">Reset</button></div></div></div>
+    <div id="bowling-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-yellow-500 rounded-2xl p-4 w-full max-w-sm modal-box text-center relative flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-yellow-500 font-bold text-xl">Bowl</h3><button onclick="window.closeBowlingGame()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><div id="bowling-menu" class="flex-1 flex flex-col justify-center gap-3"><button onclick="window.startBowlingGame()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl text-lg shadow-lg">BOWL</button><div class="mt-4"><p class="text-xs text-gray-400 font-bold uppercase mb-2">Leaderboard</p><div id="bowling-leaderboard" class="text-xs text-left bg-black p-2 rounded h-24 overflow-y-auto border border-gray-800"></div></div></div><div id="bowling-game-area" class="hidden flex-1 flex flex-col items-center"><div class="flex justify-between text-xs text-white mb-2 px-2 w-full"><span id="bowl-score">0</span><span><span id="bowl-frame">1</span>/10</span></div><canvas id="bowl-canvas" width="300" height="400"></canvas><p class="text-gray-500 text-[10px] mt-2">Swipe Up!</p><button onclick="window.resetBowlingBall()" class="mt-2 bg-gray-800 text-white py-2 rounded text-xs w-full">Reset</button></div></div></div>
+
+    <div class="fixed bottom-0 w-full bg-black/95 backdrop-blur border-t border-gray-800 p-4 flex justify-around text-gray-500 text-xl z-40">
+        <i onclick="window.location.reload()" class="fa-solid fa-house text-white cursor-pointer hover:text-pink-500 transition-colors"></i>
+        <div onclick="window.launchFeedUpload()" class="w-12 h-12 -mt-8 bg-gradient-to-tr from-yellow-400 to-pink-500 rounded-full flex items-center justify-center text-black shadow-lg shadow-pink-500/40 cursor-pointer hover:scale-110 transition-transform"><i class="fa-solid fa-plus text-xl"></i></div>
+        <i onclick="window.toggleProfile()" class="fa-regular fa-user cursor-pointer hover:text-pink-500 transition-colors"></i>
+    </div>
+
+    <script>
+        // GLOBALS
+        let currentUser = localStorage.getItem('tomboy_user') || "Guest";
+        let currentEmail = localStorage.getItem('tomboy_email') || "";
+        let currentAvatar = localStorage.getItem('tomboy_avatar') || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        let userAISeed = Math.floor(Math.random() * 99999);
+        let selectedQuoteColor = 'white';
+        let selectedQuoteBgType = 'color';
+        let selectedQuoteBgValue = '#000000';
+        let storiesList = [];
+        let currentStoryIndex = 0;
+        let storyTimer = null;
+        let generatedStickerUrl = "";
+        let viewingPostId = "";
+        let viewingPostUser = "";
+
+        // AUTH TRIGGERS
+        window.triggerLogin = () => netlifyIdentity.open('login');
+        window.triggerSignup = () => netlifyIdentity.open('signup');
+        window.logout = () => { localStorage.clear(); netlifyIdentity.logout(); location.reload(); };
+
+        // UPLOAD WRAPPERS (STRICT SEPARATION)
+        window.launchFeedUpload = () => { uploadcare.SingleWidget('#feed-widget').openDialog(null, { tabs: 'file camera url facebook instagram' }); };
+        window.launchStoryUpload = () => { uploadcare.SingleWidget('#story-widget').openDialog(null, { tabs: 'file camera url facebook instagram' }); };
+
+        // STICKER FIX
+        window.generateStickerAI = () => {
+            const prompt = document.getElementById('sticker-prompt').value;
+            if(!prompt) return;
+            generatedStickerUrl = `https://image.pollinations.ai/prompt/sticker%20${encodeURIComponent(prompt)}?width=400&height=400&nologo=true&seed=${Math.random()}`;
+            document.getElementById('sticker-preview-img').src = generatedStickerUrl;
+        };
+        window.loadStickerImage = (input) => { 
+            const f = input.files[0]; 
+            if(f){ 
+                const r = new FileReader(); 
+                r.onload = (e) => { 
+                    generatedStickerUrl = e.target.result; 
+                    document.getElementById('sticker-preview-img').src = generatedStickerUrl; 
+                }; 
+                r.readAsDataURL(f); 
+            } 
+        };
+
+        // THEME & AI
+        window.setTheme = (t) => { document.body.style.background = t; localStorage.setItem('app_theme', t); };
+        window.uploadTheme = (input) => { const f = input.files[0]; if(f){ const r = new FileReader(); r.onload = (e) => { const bg = `url(${e.target.result})`; document.body.style.backgroundImage = bg; localStorage.setItem('app_theme', bg); }; r.readAsDataURL(f); } };
+        window.generateAIWallpaper = function() {
+            const input = document.getElementById('wall-prompt');
+            const btn = document.getElementById('wall-btn');
+            if(!input.value) return; 
+            btn.innerText = "Working..."; btn.style.opacity = "0.7";
+            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(input.value)}?width=1080&height=1920&nologo=true&seed=${userAISeed}&model=flux`;
+            const img = new Image(); img.src = url;
+            img.onload = function() { document.body.style.backgroundImage = `url(${url})`; localStorage.setItem('app_theme', `url(${url})`); btn.innerText = "Set!"; setTimeout(() => { btn.innerText = "CREATE"; btn.style.opacity = "1"; }, 2000); };
+        };
+
+        // MODAL CONTROLS
+        window.openMusicModal = () => { document.getElementById('music-modal').classList.remove('hidden'); window.showSection('search'); };
+        window.closeMusicModal = () => document.getElementById('music-modal').classList.add('hidden');
+        window.showSection = (id) => { document.querySelectorAll('.music-section').forEach(el => el.classList.add('hidden')); document.getElementById('music-view-'+id).classList.remove('hidden'); };
+        window.previewMusicLink = () => { const u = document.getElementById('music-link-input').value; if(!u) return; let id = u.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1]; if(id) { document.getElementById('music-player-preview').innerHTML = `<iframe class="w-full h-full rounded" src="https://www.youtube.com/embed/${id}?autoplay=0" frameborder="0" allowfullscreen></iframe>`; window.currentMusicLink = id; } else { alert("Invalid Link! Use YouTube."); } };
+
+        window.openWebModal = () => document.getElementById('web-modal').classList.remove('hidden');
+        window.closeWebModal = () => document.getElementById('web-modal').classList.add('hidden');
+        window.launchWeb = (engine) => { const term = document.getElementById('web-search-term').value; let url = 'https://google.com'; if(engine === 'google') url = `https://www.google.com/search?q=${encodeURIComponent(term)}`; if(engine === 'images') url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(term)}`; if(engine === 'pinterest') url = `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(term)}`; if(engine === 'tiktok') url = `https://www.tiktok.com/search?q=${encodeURIComponent(term)}`; window.open(url, '_blank'); };
+
+        window.openBotChat = () => document.getElementById('bot-chat-modal').classList.remove('hidden'); 
+        window.closeBotChat = () => document.getElementById('bot-chat-modal').classList.add('hidden');
+        window.triggerBotUpload = () => { const w = uploadcare.SingleWidget('#bot-upload-widget'); w.openDialog(); };
+        
+        window.openQuoteStudio = () => { document.getElementById('quote-modal').classList.remove('hidden'); window.updateQuotePreview(); };
+        window.closeQuoteStudio = () => document.getElementById('quote-modal').classList.add('hidden');
+        window.setQuoteStyle = (s) => { selectedQuoteColor = s; window.updateQuotePreview(); };
+        window.setQuoteBg = (type, value) => { selectedQuoteBgType = type; selectedQuoteBgValue = value; window.updateQuotePreview(); };
+        window.uploadQuoteBg = (input) => { const f = input.files[0]; if(f){ const r = new FileReader(); r.onload = (e) => { window.setQuoteBg('image', `url(${e.target.result})`); }; r.readAsDataURL(f); } }
+        window.updateQuotePreview = () => { const previewArea = document.getElementById('quote-preview-area'); const previewText = document.getElementById('quote-preview-text'); const textInput = document.getElementById('quote-text').value || "Preview..."; previewText.innerText = textInput; previewText.className = "text-xl font-bold"; if(selectedQuoteColor === 'rainbow') { previewText.classList.add('rainbow-text-static'); previewText.style.color = 'transparent'; } else { previewText.style.color = selectedQuoteColor; } previewArea.style.backgroundImage = ''; previewArea.style.backgroundColor = ''; if(selectedQuoteBgType === 'image' || selectedQuoteBgType === 'gradient') { previewArea.style.backgroundImage = selectedQuoteBgValue; } else { previewArea.style.backgroundColor = selectedQuoteBgValue; } };
+
+        window.openAIModal = () => document.getElementById('ai-modal').classList.remove('hidden'); 
+        window.closeAIModal = () => document.getElementById('ai-modal').classList.add('hidden');
+        window.openYouTube = () => document.getElementById('youtube-modal').classList.remove('hidden'); 
+        window.closeYouTube = () => document.getElementById('youtube-modal').classList.add('hidden');
+        window.openGIFModal = () => document.getElementById('gif-modal').classList.remove('hidden'); 
+        window.closeGIF = () => document.getElementById('gif-modal').classList.add('hidden');
+        window.openStickerModal = () => document.getElementById('sticker-modal').classList.remove('hidden'); 
+        window.closeStickerModal = () => document.getElementById('sticker-modal').classList.add('hidden');
+        window.openGroupChat = () => document.getElementById('group-chat-modal').classList.remove('hidden'); 
+        window.closeGroupChat = () => document.getElementById('group-chat-modal').classList.add('hidden');
+        
+        // PROFILE
+        window.toggleProfile = () => { 
+            document.getElementById('profile-modal').classList.toggle('hidden'); 
+            document.getElementById('profile-name-input').value = currentUser;
+            document.getElementById('profile-img-large').src = currentAvatar;
+            window.switchProfileTab('posts'); 
+        };
+
+        window.switchProfileTab = (tab) => {
+            const postsDiv = document.getElementById('profile-tab-posts');
+            const settingsDiv = document.getElementById('profile-tab-settings');
+            const btnPosts = document.getElementById('tab-btn-posts');
+            const btnSettings = document.getElementById('tab-btn-settings');
+
+            if(tab === 'posts') {
+                postsDiv.classList.remove('hidden'); settingsDiv.classList.add('hidden');
+                btnPosts.className = "flex-1 py-3 text-sm font-bold text-pink-500 border-b-2 border-pink-500";
+                btnSettings.className = "flex-1 py-3 text-sm font-bold text-gray-500";
+                window.loadMyPosts(); 
+            } else {
+                postsDiv.classList.add('hidden'); settingsDiv.classList.remove('hidden');
+                btnPosts.className = "flex-1 py-3 text-sm font-bold text-gray-500";
+                btnSettings.className = "flex-1 py-3 text-sm font-bold text-pink-500 border-b-2 border-pink-500";
+            }
+        };
+
+        window.openPublicProfile = (name, avatar) => {
+            document.getElementById('public-profile-modal').classList.remove('hidden');
+            document.getElementById('public-profile-name').innerText = name;
+            document.getElementById('public-profile-img').src = avatar;
+            window.loadUserPosts(name);
+        };
+        window.closePublicProfile = () => document.getElementById('public-profile-modal').classList.add('hidden');
+        
+        // STORIES LOOP ENGINE
+        window.closeStory = () => { 
+            document.getElementById('story-viewer').classList.add('hidden'); 
+            document.getElementById('story-content-container').innerHTML = ''; 
+            clearInterval(storyTimer);
+        }
+        
+        window.nextStory = () => {
+            if(currentStoryIndex < storiesList.length - 1) {
+                currentStoryIndex++;
+                window.playStory(storiesList[currentStoryIndex]);
+            } else {
+                window.closeStory();
+            }
+        };
+
+        window.prevStory = () => {
+            if(currentStoryIndex > 0) {
+                currentStoryIndex--;
+                window.playStory(storiesList[currentStoryIndex]);
+            }
+        };
+
+        window.playStory = (story) => {
+            const container = document.getElementById('story-content-container');
+            const viewer = document.getElementById('story-viewer');
+            const bar = document.getElementById('story-timer-bar');
+            const delBtn = document.getElementById('story-delete-btn');
+            
+            if(story.author === currentUser) {
+                delBtn.classList.remove('hidden');
+                delBtn.onclick = () => window.deleteStory(story.id);
+            } else {
+                delBtn.classList.add('hidden');
+            }
+
+            viewer.classList.remove('hidden');
+            document.getElementById('story-view-avatar').src = story.authorAvatar;
+            document.getElementById('story-view-author').innerText = story.author;
+            container.innerHTML = '';
+            
+            bar.style.transition = 'none';
+            bar.style.width = '0%';
+            
+            if (story.type === 'video') {
+                const vid = document.createElement('video');
+                vid.src = story.url;
+                vid.autoplay = true;
+                vid.muted = false; 
+                vid.playsInline = true;
+                vid.className = "max-w-full max-h-full";
+                
+                // SNAPCHAT LOOP LOGIC
+                vid.onended = () => window.nextStory();
+                
+                vid.onloadedmetadata = () => {
+                    bar.style.transition = `width ${vid.duration}s linear`;
+                    bar.style.width = '100%';
+                };
+                container.appendChild(vid);
+            } else {
+                const img = document.createElement('img');
+                img.src = story.url;
+                img.className = "max-w-full max-h-full object-contain";
+                container.appendChild(img);
+                
+                setTimeout(() => { bar.style.transition = `width 5s linear`; bar.style.width = '100%'; }, 10);
+                clearInterval(storyTimer);
+                storyTimer = setTimeout(() => window.nextStory(), 5000);
+            }
+        };
+
+        window.previewYT = () => { const u = document.getElementById('yt-url').value; let id = u.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1]; if(id) { document.getElementById('yt-preview').innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`; } else { alert("Invalid YouTube Link"); } };
+        
+        // GIF SEARCH
+        window.searchGIF = async () => { 
+            const q = document.getElementById('gif-search').value; if(!q) return; 
+            const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=0UTRbFtkMxAplrohufYco5IY74U8hOes&q=${encodeURIComponent(q)}&limit=9`); 
+            const data = await res.json(); 
+            const container = document.getElementById('gif-results'); 
+            container.innerHTML = ''; 
+            data.data.forEach(gif => { 
+                const img = document.createElement('img'); 
+                img.src = gif.images.fixed_height_small.url; 
+                img.className = 'w-16 h-16 object-cover rounded cursor-pointer'; 
+                img.onclick = () => { 
+                    if(confirm("Post to Feed? (Cancel for Story)")) {
+                        window.uploadToFeed({ type:'gif', url:gif.images.original.url, caption:"GIF" });
+                    } else {
+                        window.uploadToStory({ type:'gif', url:gif.images.original.url });
+                    }
+                    window.closeGIF(); 
+                }; 
+                container.appendChild(img); 
+            }); 
+        };
+        
+        // DRAW
+        const canvas = document.getElementById('draw-canvas'); const ctx = canvas.getContext('2d'); let isDrawing = false; let brushMode = 'brush'; let history = [];
+        window.openDrawer = () => { document.getElementById('draw-modal').classList.remove('hidden'); const rect = canvas.parentElement.getBoundingClientRect(); canvas.width = rect.width * 2; canvas.height = rect.height * 2; ctx.scale(2, 2); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; window.updatePen(); };
+        window.closeDrawer = () => document.getElementById('draw-modal').classList.add('hidden');
+        window.updatePen = () => { const size = 5; ctx.lineWidth = size; ctx.strokeStyle = document.getElementById('color-picker').value; if(brushMode === 'eraser') { ctx.globalCompositeOperation = 'destination-out'; } else { ctx.globalCompositeOperation = 'source-over'; } };
+        window.setBrushMode = (mode) => { brushMode = mode; window.updatePen(); };
+        window.undoDraw = () => { if(history.length > 0) { const lastState = history.pop(); const img = new Image(); img.src = lastState; img.onload = () => { ctx.clearRect(0,0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width/2, canvas.height/2); }; } };
+        function saveState() { if(history.length > 5) history.shift(); history.push(canvas.toDataURL()); }
+        function draw(e) { if(!isDrawing) return; e.preventDefault(); const r=canvas.getBoundingClientRect(); const x=(e.clientX||e.touches[0].clientX)-r.left; const y=(e.clientY||e.touches[0].clientY)-r.top; ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y); }
+        function start(e) { saveState(); isDrawing=true; const r=canvas.getBoundingClientRect(); const x=(e.clientX||e.touches[0].clientX)-r.left; const y=(e.clientY||e.touches[0].clientY)-r.top; ctx.beginPath(); ctx.moveTo(x,y); draw(e); }
+        canvas.addEventListener('mousedown', start); canvas.addEventListener('touchstart', start, {passive:false}); canvas.addEventListener('mousemove', draw); canvas.addEventListener('touchmove', draw, {passive:false}); canvas.addEventListener('mouseup', ()=>{isDrawing=false; ctx.beginPath()}); canvas.addEventListener('touchend', ()=>{isDrawing=false; ctx.beginPath()});
+
+        // GAMES
+        const bowlCanvas = document.getElementById('bowl-canvas'); const bCtx = bowlCanvas.getContext('2d');
+        let bowlState = { x: 150, y: 350, vx: 0, vy: 0, pins: [], score: 0, frame: 1, city: 'tokyo', ballColor: '#ff0000', dragging: false, startX: 0, startY: 0, gameOver: false };
+        const initPins = () => { let pins = []; let startX = 150; let startY = 50; [1, 2, 3, 4].forEach((count, rIndex) => { for(let i=0; i<count; i++) { pins.push({x: startX + (i * 20) - ((count-1)*20/2), y: startY + (rIndex * 15), active: true}); } }); return pins; };
+        window.openBowlingGame = () => { document.getElementById('bowling-modal').classList.remove('hidden'); document.getElementById('bowling-menu').classList.remove('hidden'); document.getElementById('bowling-game-area').classList.add('hidden'); window.fetchBowlingLeaderboard(); };
+        window.closeBowlingGame = () => document.getElementById('bowling-modal').classList.add('hidden');
+        window.startBowlingGame = () => { document.getElementById('bowling-menu').classList.add('hidden'); document.getElementById('bowling-game-area').classList.remove('hidden'); bowlState.score = 0; bowlState.frame = 1; window.resetBowlingBall(); window.requestAnimationFrame(bowlLoop); };
+        window.resetBowlingBall = () => { bowlState.x = 150; bowlState.y = 350; bowlState.vx = 0; bowlState.vy = 0; bowlState.pins = initPins(); bowlState.gameOver = false; document.getElementById('bowl-frame').innerText = bowlState.frame; };
+        function bowlLoop() { if(document.getElementById('bowling-modal').classList.contains('hidden')) return; bowlState.x += bowlState.vx; bowlState.y += bowlState.vy; bowlState.vx *= 0.98; bowlState.vy *= 0.98; if(bowlState.x < 10 || bowlState.x > 290) bowlState.vx *= -1; bowlState.pins.forEach(p => { if(p.active) { let dx = bowlState.x - p.x; let dy = bowlState.y - p.y; if(Math.sqrt(dx*dx + dy*dy) < 15) { p.active = false; bowlState.score += 10; document.getElementById('bowl-score').innerText = bowlState.score; bowlState.vx *= 0.8; bowlState.vy *= 0.8; } } }); if(bowlState.y < 0 || bowlState.y > 410) { if(!bowlState.gameOver && Math.abs(bowlState.vy) > 0.1) { bowlState.gameOver = true; setTimeout(() => { if(bowlState.frame < 10) { bowlState.frame++; window.resetBowlingBall(); } else { window.saveBowlingScore(bowlState.score); window.openBowlingGame(); } }, 1000); } } bCtx.clearRect(0,0,300,400); bCtx.fillStyle = 'white'; bowlState.pins.forEach(p => { if(p.active) { bCtx.beginPath(); bCtx.arc(p.x, p.y, 5, 0, Math.PI*2); bCtx.fill(); bCtx.strokeStyle = 'red'; bCtx.stroke(); } }); bCtx.beginPath(); bCtx.arc(bowlState.x, bowlState.y, 10, 0, Math.PI*2); bCtx.fillStyle = bowlState.ballColor; bCtx.fill(); window.requestAnimationFrame(bowlLoop); }
+        const handleBowlStart = (x, y) => { bowlState.dragging = true; const r = bowlCanvas.getBoundingClientRect(); bowlState.startX = x - r.left; bowlState.startY = y - r.top; };
+        const handleBowlEnd = (x, y) => { if(bowlState.dragging) { const r = bowlCanvas.getBoundingClientRect(); const endX = x - r.left; const endY = y - r.top; if(endY < bowlState.startY) { bowlState.vx = (endX - bowlState.startX) * 0.15; bowlState.vy = (endY - bowlState.startY) * 0.15; } bowlState.dragging = false; } };
+        bowlCanvas.addEventListener('mousedown', (e) => handleBowlStart(e.clientX, e.clientY)); bowlCanvas.addEventListener('mouseup', (e) => handleBowlEnd(e.clientX, e.clientY)); bowlCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleBowlStart(e.touches[0].clientX, e.touches[0].clientY); }); bowlCanvas.addEventListener('touchend', (e) => { handleBowlEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY); });
+
+        const golfCanvas = document.getElementById('golf-canvas'); const gCtx = golfCanvas.getContext('2d');
+        let golfState = { x: 160, y: 400, vx: 0, vy: 0, radius: 7, score: 0, strokes: 0, level: 1, dragging: false, startX: 0, startY: 0, ballColor: 'white' };
+        const golfLevels = [{ hole: {x: 160, y: 60}, walls: [{x: 0, y: 200, w: 100, h: 30, type: 'wall'}, {x: 220, y: 200, w: 100, h: 30, type: 'wall'}], hazards: [] }];
+        window.openGolfGame = () => { document.getElementById('golf-modal').classList.remove('hidden'); document.getElementById('golf-menu').classList.remove('hidden'); document.getElementById('golf-game-area').classList.add('hidden'); window.fetchLeaderboard(); };
+        window.closeGolfGame = () => document.getElementById('golf-modal').classList.add('hidden');
+        window.startGolfGame = () => { document.getElementById('golf-menu').classList.add('hidden'); document.getElementById('golf-game-area').classList.remove('hidden'); golfState.level = 1; golfState.score = 0; window.resetGolfLevel(); window.requestAnimationFrame(gameLoop); };
+        window.resetGolfLevel = () => { golfState.x = 160; golfState.y = 400; golfState.vx = 0; golfState.vy = 0; document.getElementById('golf-level-display').innerText = "Hole " + golfState.level; document.getElementById('golf-score-display').innerText = golfState.score; };
+        function gameLoop() { if(document.getElementById('golf-modal').classList.contains('hidden')) return; const currentLevel = golfLevels[0]; golfState.x += golfState.vx; golfState.y += golfState.vy; golfState.vx *= 0.97; golfState.vy *= 0.97; if(golfState.x < 10 || golfState.x > 310) golfState.vx *= -1; if(golfState.y < 10 || golfState.y > 440) golfState.vy *= -1; gCtx.clearRect(0,0,320,450); gCtx.fillStyle = '#d6d3d1'; currentLevel.walls.forEach(w => { gCtx.fillRect(w.x, w.y, w.w, w.h); }); gCtx.beginPath(); gCtx.arc(currentLevel.hole.x, currentLevel.hole.y, 14, 0, Math.PI*2); gCtx.fillStyle = '#111'; gCtx.fill(); gCtx.fillStyle = 'red'; gCtx.beginPath(); gCtx.moveTo(currentLevel.hole.x, currentLevel.hole.y - 40); gCtx.lineTo(currentLevel.hole.x + 15, currentLevel.hole.y - 32); gCtx.lineTo(currentLevel.hole.x, currentLevel.hole.y - 25); gCtx.fill(); gCtx.beginPath(); gCtx.arc(golfState.x, golfState.y, golfState.radius, 0, Math.PI*2); gCtx.fillStyle = golfState.ballColor; gCtx.fill(); if(golfState.dragging) { gCtx.beginPath(); gCtx.moveTo(golfState.x, golfState.y); gCtx.lineTo(golfState.x + (golfState.x - golfState.currentDragX), golfState.y + (golfState.y - golfState.currentDragY)); gCtx.strokeStyle = 'yellow'; gCtx.lineWidth = 3; gCtx.stroke(); } window.requestAnimationFrame(gameLoop); }
+        const handleGolfStart = (x, y) => { golfState.dragging = true; const r = golfCanvas.getBoundingClientRect(); golfState.startX = x - r.left; golfState.startY = y - r.top; };
+        const handleGolfMove = (x, y) => { if(golfState.dragging) { const r = golfCanvas.getBoundingClientRect(); golfState.currentDragX = x - r.left; golfState.currentDragY = y - r.top; } };
+        const handleGolfEnd = (x, y) => { if(golfState.dragging) { const r = golfCanvas.getBoundingClientRect(); const endX = x - r.left; const endY = y - r.top; golfState.vx = (golfState.startX - endX) * 0.15; golfState.vy = (golfState.startY - endY) * 0.15; golfState.score++; document.getElementById('golf-score-display').innerText = golfState.score; golfState.dragging = false; } };
+        golfCanvas.addEventListener('mousedown', (e) => handleGolfStart(e.clientX, e.clientY)); golfCanvas.addEventListener('mousemove', (e) => handleGolfMove(e.clientX, e.clientY)); golfCanvas.addEventListener('mouseup', (e) => handleGolfEnd(e.clientX, e.clientY)); golfCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleGolfStart(e.touches[0].clientX, e.touches[0].clientY); }); golfCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleGolfMove(e.touches[0].clientX, e.touches[0].clientY); }); golfCanvas.addEventListener('touchend', (e) => { handleGolfEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY); });
+
+        const savedTheme = localStorage.getItem('app_theme'); if(savedTheme) document.body.style.background = savedTheme;
+        const avatarWidget = uploadcare.SingleWidget('#avatar-widget');
+        window.triggerAvatarUpload = () => avatarWidget.openDialog();
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, setDoc, getDoc, deleteDoc, onSnapshot, query, orderBy, limit, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFH_8zzsZURwZ89i0fFS8BYgvzIoNJtNo",
+            authDomain: "tomboycolorverse-3d3a4.firebaseapp.com",
+            projectId: "tomboycolorverse-3d3a4",
+            storageBucket: "tomboycolorverse-3d3a4.firebasestorage.app",
+            messagingSenderId: "1088860662316",
+            appId: "1:1088860662316:web:a30157214912dc78177f89"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const postsRef = collection(db, "posts");
+        const storiesRef = collection(db, "stories");
+        const usersRef = collection(db, "users");
+        const scoresRef = collection(db, "golf_scores");
+        const bowlScoresRef = collection(db, "bowling_scores");
+        const dmsRef = collection(db, "messages");
+        const notifRef = collection(db, "notifications");
+
+        // --- POSTING FUNCTIONS ---
+        window.uploadToFeed = async (data) => {
+            const payload = { ...data, author: currentUser, authorAvatar: currentAvatar, timestamp: Date.now(), likes: 0, comments: [] };
+            await addDoc(postsRef, payload);
+        };
+
+        window.uploadToStory = async (data) => {
+            const payload = { ...data, author: currentUser, authorAvatar: currentAvatar, timestamp: Date.now() };
+            await addDoc(storiesRef, payload);
+        };
+
+        // --- SPECIFIC BUTTON HANDLERS ---
+        window.postMusicLink = async (target) => { 
+            if(window.currentMusicLink) { 
+                const data = { type: 'yt-music', url: window.currentMusicLink, caption: document.getElementById('music-post-caption').value || "Music" };
+                if(target === 'feed') await window.uploadToFeed(data); else await window.uploadToStory(data);
+                window.closeMusicModal(); 
+            } 
+        };
+        window.postLyrics = async (target) => { 
+            const l = document.getElementById('lyrics-text').value; if(!l) return;
+            const data = { type:'lyrics', text:l, caption:"Lyrics" };
+            if(target === 'feed') await window.uploadToFeed(data); else await window.uploadToStory(data);
+            window.closeMusicModal(); 
+        };
+        window.saveDrawing = async (target) => { 
+            const d = canvas.toDataURL("image/png"); 
+            const data = { url: d, type: 'image', caption: "Art" };
+            if(target === 'feed') await window.uploadToFeed(data); else await window.uploadToStory(data);
+            window.closeDrawer(); window.clearCanvas(); 
+        };
+        window.publishQuote = async (target) => { 
+            const t = document.getElementById('quote-text').value; if(!t) return; 
+            const data = { text: t, type: 'text', caption: 'Quote', color: selectedQuoteColor, bgType: selectedQuoteBgType, bgValue: selectedQuoteBgValue };
+            if(target === 'feed') await window.uploadToFeed(data); else await window.uploadToStory(data);
+            document.getElementById('quote-text').value=""; window.closeQuoteStudio(); 
+        };
+        window.submitAI = async (target) => { 
+            const p = document.getElementById('ai-prompt').value; if(!p) return; 
+            document.getElementById('ai-modal').classList.add('hidden'); alert("Generating..."); 
+            const u = `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=720&height=720&nologo=true&seed=${userAISeed}`; 
+            const data = { url: u, type: 'image', caption: 'AI: ' + p };
+            if(target === 'feed') await window.uploadToFeed(data); else await window.uploadToStory(data);
+            document.getElementById('ai-prompt').value=''; 
+        };
+        window.postYouTube = async (target) => { 
+            const u = document.getElementById('yt-url').value; let id = u.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1]; if(!id) return; 
+            const data = { type:'youtube', url:id, caption:document.getElementById('yt-caption').value||"Video" };
+            if(target === 'feed') await window.uploadToFeed(data); else await window.uploadToStory(data);
+            document.getElementById('yt-url').value=''; window.closeYouTube(); 
+        };
+        window.postSticker = async (target) => { 
+            if(!generatedStickerUrl) return alert("Generate sticker first!");
+            const data = { url: generatedStickerUrl, type: 'sticker', caption: "Sticker" };
+            if(target === 'feed') await window.uploadToFeed(data); else await window.uploadToStory(data);
+            window.closeStickerModal(); 
+        };
+
+        // --- UPLOAD HANDLERS (SEPARATE) ---
+        const feedWidget = uploadcare.SingleWidget('#feed-widget');
+        feedWidget.onUploadComplete(async (f) => { 
+            if (!f.cdnUrl) return;
+            let t = 'image'; if(f.mimeType?.includes('audio')) t = 'audio'; else if(f.mimeType?.includes('video')) t = 'video'; 
+            let c = prompt("Caption:", "New Drop") || "Untitled"; 
+            await window.uploadToFeed({ url: f.cdnUrl, type: t, caption: c }); 
+            feedWidget.value(null); 
+        });
+
+        const storyWidget = uploadcare.SingleWidget('#story-widget');
+        storyWidget.onUploadComplete(async (f) => { 
+            if (!f.cdnUrl) return;
+            let t = 'image'; if(f.mimeType?.includes('audio')) t = 'audio'; else if(f.mimeType?.includes('video')) t = 'video'; 
+            await window.uploadToStory({ url: f.cdnUrl, type: t, caption: "Story" }); 
+            storyWidget.value(null); 
+        });
+
+        // --- AVATAR & PROFILE UPDATE ---
+        const avatarWidget = uploadcare.SingleWidget('#avatar-widget');
+        avatarWidget.onUploadComplete(async (f) => {
+            if(f.cdnUrl) {
+                currentAvatar = f.cdnUrl;
+                document.getElementById('profile-img-large').src = currentAvatar;
+                localStorage.setItem('tomboy_avatar', currentAvatar);
+                if(currentEmail) await setDoc(doc(db, "users", currentEmail), { name: currentUser, avatar: currentAvatar }, { merge: true });
+            }
+            avatarWidget.value(null);
+        });
+
+        window.saveProfileName = async () => {
+            const newName = document.getElementById('profile-name-input').value;
+            if(newName) {
+                currentUser = newName;
+                localStorage.setItem('tomboy_user', newName);
+                if(currentEmail) await setDoc(doc(db, "users", currentEmail), { name: newName, avatar: currentAvatar }, { merge: true });
+                alert("Updated!");
+            }
+        };
+
+        window.deletePost = async (id) => { if(confirm("Delete this post?")) await deleteDoc(doc(db, "posts", id)); };
+        window.deleteStory = async (id) => { if(confirm("Delete Story?")) { await deleteDoc(doc(db, "stories", id)); window.closeStory(); } };
+
+        // --- FEED & POST VIEWER ---
+        window.viewPost = (id, url, type, caption, avatar, author, reactions, time) => {
+            viewingPostId = id;
+            viewingPostUser = author;
+            document.getElementById('post-view-modal').classList.remove('hidden');
+            const contentDiv = document.getElementById('view-post-content');
+            contentDiv.innerHTML = '';
+            
+            if(type === 'video') contentDiv.innerHTML = `<video src="${url}" controls class="post-big-img"></video>`;
+            else if(type === 'youtube' || type === 'yt-music') contentDiv.innerHTML = `<iframe class="w-full h-64" src="https://www.youtube.com/embed/${url}" frameborder="0" allowfullscreen></iframe>`;
+            else contentDiv.innerHTML = `<img src="${url}" class="post-big-img">`;
+
+            document.getElementById('view-post-avatar').src = avatar;
+            document.getElementById('view-post-author').innerText = author;
+            document.getElementById('view-post-caption').innerText = caption;
+            
+            // Time ago
+            const mins = Math.floor((Date.now() - time) / 60000);
+            const timeStr = mins < 60 ? `${mins}m ago` : `${Math.floor(mins/60)}h ago`;
+            document.getElementById('view-post-time').innerText = timeStr;
+
+            // Display Reactions
+            const rDiv = document.getElementById('view-post-reactions');
+            rDiv.innerText = reactions ? JSON.stringify(reactions).replace(/[{}"]/g, '') : "No reactions yet";
+            
+            // Header click -> Profile
+            document.getElementById('view-post-header').onclick = () => {
+                document.getElementById('post-view-modal').classList.add('hidden');
+                window.openPublicProfile(author, avatar);
+            };
+            
+            window.loadComments(id);
+        };
+
+        window.toggleEmojiPicker = () => document.getElementById('emoji-picker').classList.toggle('hidden');
+        
+        window.addReaction = async (emoji) => {
+            if(!viewingPostId) return;
+            const postRef = doc(db, "posts", viewingPostId);
+            const docSnap = await getDoc(postRef);
+            if(docSnap.exists()) {
+                let currentReactions = docSnap.data().reactions || {};
+                currentReactions[emoji] = (currentReactions[emoji] || 0) + 1;
+                await updateDoc(postRef, { reactions: currentReactions });
+                document.getElementById('view-post-reactions').innerText = JSON.stringify(currentReactions).replace(/[{}"]/g, '');
+                
+                // NOTIFY
+                if(viewingPostUser !== currentUser) {
+                    await addDoc(notifRef, {
+                        to: viewingPostUser,
+                        from: currentUser,
+                        msg: `reacted ${emoji} to your post`,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+        };
+
+        window.toggleComments = () => document.getElementById('comments-section').classList.toggle('hidden');
+        
+        window.addComment = async () => {
+            const txt = document.getElementById('comment-input').value;
+            if(!txt || !viewingPostId) return;
+            
+            const postRef = doc(db, "posts", viewingPostId);
+            const docSnap = await getDoc(postRef);
+            if(docSnap.exists()) {
+                let comments = docSnap.data().comments || [];
+                const newComment = { user: currentUser, text: txt };
+                comments.push(newComment);
+                await updateDoc(postRef, { comments: comments });
+                document.getElementById('comment-input').value = "";
+                window.loadComments(viewingPostId);
+                
+                // NOTIFY
+                if(viewingPostUser !== currentUser) {
+                    await addDoc(notifRef, {
+                        to: viewingPostUser,
+                        from: currentUser,
+                        msg: `commented: "${txt}"`,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+        };
+
+        window.loadComments = async (id) => {
+            const postRef = doc(db, "posts", id);
+            const docSnap = await getDoc(postRef);
+            if(docSnap.exists()) {
+                const comments = docSnap.data().comments || [];
+                const list = document.getElementById('comments-list');
+                list.innerHTML = comments.map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('');
+            }
+        };
+
+        // --- DM SYSTEM ---
+        window.openDMs = () => {
+            const recipient = document.getElementById('public-profile-name').innerText;
+            document.getElementById('dm-modal').classList.remove('hidden');
+            document.getElementById('dm-recipient-name').innerText = recipient;
+            
+            // Listen for messages between currentUser and recipient
+            const q = query(dmsRef, orderBy("timestamp", "asc"));
+            onSnapshot(q, (snapshot) => {
+                const hist = document.getElementById('dm-history');
+                hist.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const m = doc.data();
+                    if((m.from === currentUser && m.to === recipient) || (m.from === recipient && m.to === currentUser)) {
+                        const bubble = document.createElement('div');
+                        bubble.className = m.from === currentUser ? 'chat-bubble chat-mine' : 'chat-bubble chat-theirs';
+                        bubble.innerText = m.text;
+                        hist.appendChild(bubble);
+                    }
+                });
+                hist.scrollTop = hist.scrollHeight;
+            });
+        };
+
+        window.sendDM = async () => {
+            const txt = document.getElementById('dm-input').value;
+            const recipient = document.getElementById('dm-recipient-name').innerText;
+            if(!txt) return;
+            await addDoc(dmsRef, { from: currentUser, to: recipient, text: txt, timestamp: Date.now() });
+            document.getElementById('dm-input').value = "";
+        };
+
+        // --- NOTIFICATIONS ---
+        window.openNotifications = () => {
+            document.getElementById('notif-modal').classList.remove('hidden');
+            document.getElementById('notif-badge').classList.add('hidden');
+            const list = document.getElementById('notif-list');
+            list.innerHTML = 'Loading...';
+            
+            const q = query(notifRef, orderBy("timestamp", "desc"), limit(20));
+            onSnapshot(q, (snapshot) => {
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const n = doc.data();
+                    if(n.to === currentUser) {
+                        const div = document.createElement('div');
+                        div.className = "border-b border-gray-800 pb-1";
+                        div.innerHTML = `<b>${n.from}</b> ${n.msg}`;
+                        list.appendChild(div);
+                    }
+                });
+                if(list.children.length === 0) list.innerHTML = "No notifications.";
+            });
+        };
+
+        // --- AUTH ---
+        if (window.netlifyIdentity) { 
+            window.netlifyIdentity.on("login", async (u) => { 
+                currentEmail = u.email; currentUser = u.user_metadata.full_name; 
+                localStorage.setItem('tomboy_email', currentEmail); localStorage.setItem('tomboy_user', currentUser);
+                document.getElementById('auth-overlay').classList.add('hidden'); // REMOVE OVERLAY
+                document.getElementById('auth-buttons').classList.add('hidden');
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('signup-page-modal').classList.add('hidden');
+                
+                const docSnap = await getDoc(doc(db, "users", currentEmail));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    currentUser = data.name; currentAvatar = data.avatar;
+                    localStorage.setItem('tomboy_avatar', currentAvatar);
+                    document.getElementById('profile-img-large').src = currentAvatar;
+                    document.getElementById('profile-name-input').value = currentUser;
+                }
+                
+                // Live Status
+                await setDoc(doc(db, "users", currentEmail), { status: 'online', lastSeen: Date.now() }, { merge: true });
+            }); 
+            window.netlifyIdentity.on("logout", () => { currentUser = "Guest"; currentEmail = ""; localStorage.clear(); window.location.reload(); }); 
+        }
+
+        // --- LISTENERS ---
+        onSnapshot(query(storiesRef, orderBy("timestamp", "desc")), (snapshot) => {
+            const list = document.getElementById('stories-list');
+            const addBtn = list.firstElementChild;
+            list.innerHTML = ''; list.appendChild(addBtn);
+            storiesList = [];
+            const now = Date.now();
+            snapshot.forEach((doc) => {
+                const s = { id: doc.id, ...doc.data() };
+                if (now - s.timestamp < 86400000) {
+                    storiesList.push(s);
+                    // RENDER STORY RING
+                    const div = document.createElement('div');
+                    div.className = 'story-wrapper';
+                    let thumb = `<img src="${s.url}" alt="${s.author}">`;
+                    if (s.type === 'video') thumb = `<video src="${s.url}#t=0.1" muted playsinline></video>`;
+                    div.innerHTML = `<div class="story-ring-wrap"><div class="story-ring-inner">${thumb}</div></div><span class="text-[10px] text-gray-300 truncate w-14 text-center">${s.author}</span>`;
+                    div.onclick = () => { currentStoryIndex = storiesList.findIndex(st => st.id === s.id); window.playStory(s); };
+                    list.appendChild(div);
+                }
+            });
+        });
+
+        onSnapshot(query(postsRef, orderBy("timestamp", "desc"), limit(50)), (snapshot) => { 
+            const grid = document.getElementById('feed-grid');
+            grid.innerHTML = ''; 
+            snapshot.forEach((doc) => { 
+                const p = { id: doc.id, ...doc.data() };
+                const div = document.createElement('div'); 
+                div.className = 'break-inside-avoid mb-4 relative group rounded-xl overflow-hidden border border-gray-800 bg-[#111]';
+                let content = '';
+                if (p.type === 'youtube' || p.type === 'yt-music') content = `<iframe class="w-full aspect-video" src="https://www.youtube.com/embed/${p.url}" frameborder="0"></iframe>`;
+                else if (p.type === 'text') content = `<div class="p-6 text-center min-h-[150px] flex items-center justify-center" style="background:${p.bgValue}"><p class="text-xl font-bold" style="color:${p.color}">${p.text}</p></div>`;
+                else if (p.type === 'video') content = `<video src="${p.url}" class="w-full" controls playsinline></video>`;
+                else content = `<img src="${p.url}" class="w-full object-cover">`;
+                
+                // Render Reactions Inline
+                const reacts = p.reactions ? Object.keys(p.reactions).map(k => `${k} ${p.reactions[k]}`).join(' ') : '';
+
+                div.innerHTML = `<div class="p-2 flex items-center justify-between bg-[#111]"><div class="flex items-center gap-2"><img src="${p.authorAvatar}" class="w-6 h-6 rounded-full object-cover"><span class="text-xs text-gray-400 font-bold">${p.author}</span></div></div><div onclick="window.viewPost('${p.id}', '${p.url}', '${p.type}', '${p.caption}', '${p.authorAvatar}', '${p.author}', ${JSON.stringify(p.reactions || {})}, ${p.timestamp})">${content}</div><div class="bg-[#111] p-2 px-3 border-t border-gray-800 flex justify-between items-center"><span class="text-[10px] text-gray-500 uppercase font-bold truncate w-24">${p.caption}</span><span class="text-xs text-gray-400">${reacts}</span></div>`;
+                grid.appendChild(div);
+            }); 
+        });
+
+        // --- BOT ---
+        const botUpload = uploadcare.SingleWidget('#bot-upload-widget'); let lastBotContextImage = null; 
+        botUpload.onUploadComplete(f => { const h = document.getElementById('bot-history'); h.innerHTML += `<div class="chat-bubble chat-mine"><img src="${f.cdnUrl}" class="chat-img"></div><div class="chat-bubble chat-theirs">Got it!</div>`; h.scrollTop = h.scrollHeight; lastBotContextImage = f.cdnUrl; botUpload.value(null); });
+        window.sendBotMessage = async () => { const i = document.getElementById('bot-input'); const v = i.value; if(!v) return; const h = document.getElementById('bot-history'); h.innerHTML += `<div class="chat-bubble chat-mine">${v}</div>`; i.value = ''; const lowerV = v.toLowerCase(); if(lowerV.includes('draw') || lowerV.includes('create')) { h.innerHTML += `<div class="chat-bubble chat-theirs">Painting...</div>`; let imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(v)}?nologo=true&model=flux&seed=${userAISeed}`; if(lastBotContextImage) imgUrl += `&image=${encodeURIComponent(lastBotContextImage)}`; h.innerHTML += `<div class="chat-bubble chat-theirs"><img src="${imgUrl}" class="chat-img"></div>`; } else { try { const r = await fetch(`https://text.pollinations.ai/${encodeURIComponent("System: You are Emerald. User: " + v)}`); const txt = await r.text(); h.innerHTML += `<div class="chat-bubble chat-theirs">${txt}</div>`; } catch(e){} } h.scrollTop = h.scrollHeight; };
+    </script>
+</body>
+</html>
