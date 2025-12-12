@@ -23,25 +23,17 @@
         
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #050505; 
+            background-color: #0f0f10; 
             color: white; 
             padding-bottom: 120px; 
             -webkit-tap-highlight-color: transparent; 
             background-size: cover; 
             background-position: center; 
-            background-attachment: fixed;
-            background-repeat: no-repeat;
+            background-attachment: fixed; 
             touch-action: manipulation;
-            overflow-x: hidden;
+            overscroll-behavior: none;
         }
         
-        /* FULL SCREEN LOGIN PAGE */
-        #auth-overlay {
-            position: fixed; inset: 0; z-index: 100000;
-            background: black;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-
         /* FEED LAYOUT */
         .masonry-grid { column-count: 2; column-gap: 12px; }
         .break-inside-avoid { break-inside: avoid; margin-bottom: 12px; }
@@ -52,15 +44,12 @@
             background: linear-gradient(90deg, #ff00cc, #bd00ff, #00d4ff, #00ff00, #ffff00, #ff0000); 
             background-size: 200%; -webkit-background-clip: text; color: transparent; animation: holo 3s linear infinite; 
         }
-        .rainbow-border {
-            position: relative; z-index: 0; border-radius: 50%;
-        }
-        .rainbow-border::before {
-            content: ""; position: absolute; inset: -3px; border-radius: 50%; 
-            background: linear-gradient(90deg, #ff00cc, #bd00ff, #00d4ff, #00ff00, #ffff00, #ff0000);
-            background-size: 200%; animation: holo 2s linear infinite; z-index: -1;
+        .rainbow-bg {
+            background: linear-gradient(90deg, #ff00cc, #bd00ff, #00d4ff, #00ff00, #ffff00, #ff0000); 
+            background-size: 200%; animation: holo 3s linear infinite; color: black; font-weight: 900;
         }
         @keyframes holo { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         /* NEON BUTTONS */
         .neon-btn {
@@ -72,18 +61,11 @@
         .neon-btn:active { transform: scale(0.95); opacity: 0.9; }
         
         /* COLORS */
-        .music-btn { background: #ff00cc; border: 2px solid #fff; color: white; }
-        .youtube-btn { background: #FF0000; border: 2px solid #fff; color: white; }
-        .gif-btn { background: #9d4edd; border: 2px solid #fff; color: white; }
-        .sticker-btn { background: #00e5ff; border: 2px solid #fff; color: black; }
-        .chat-btn { background: #3b82f6; border: 2px solid #fff; color: white; }
-        .bot-btn { background: #10b981; border: 2px solid #fff; color: black; }
-        .ai-btn { background: linear-gradient(45deg, #FFD700, #FF8C00); border: 2px solid #fff; color: black; }
-        .quote-btn { background: #222; border: 2px solid #555; color: white; }
-        .draw-btn { background: #fff; border: 2px solid #ccc; color: black; }
-        .web-btn { background: #fff; border: 2px solid #000; color: black; }
-        .game-btn { background: #4ade80; border: 2px solid #fff; color: black; }
-        .bowl-btn { background: #f59e0b; border: 2px solid #fff; color: black; }
+        .music-btn { background: #ff00cc; } .youtube-btn { background: #FF0000; } .gif-btn { background: #9d4edd; }
+        .sticker-btn { background: #00e5ff; } .chat-btn { background: #3b82f6; } .bot-btn { background: #10b981; }
+        .ai-btn { background: linear-gradient(45deg, #FFD700, #FF8C00); } .quote-btn { background: #222; border: 1px solid #555; }
+        .draw-btn { background: #fff; color: black; } .web-btn { background: #fff; color: black; }
+        .game-btn { background: #4ade80; color: black; } .bowl-btn { background: #f59e0b; color: black; }
 
         /* MODALS */
         .modal-overlay { 
@@ -97,12 +79,28 @@
         }
         .hidden { display: none !important; }
         
-        /* STORIES */
+        /* STORIES BAR */
         .stories-container { display: flex; gap: 15px; overflow-x: auto; padding: 15px 5px; scrollbar-width: none; align-items: flex-start; }
         .stories-container::-webkit-scrollbar { display: none; }
         .story-wrapper { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 70px; flex-shrink: 0; }
-        .story-ring { width: 65px; height: 65px; border-radius: 50%; padding: 3px; position: relative; cursor: pointer; flex-shrink: 0; }
-        .story-ring img, .story-ring video { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #000; background: #222; display: block; }
+        
+        /* SPINNING RAINBOW RING */
+        .story-ring-wrap {
+            width: 68px; height: 68px; border-radius: 50%; padding: 3px;
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 200%; animation: spin 2s linear infinite;
+            position: relative; cursor: pointer; flex-shrink: 0;
+        }
+        .story-ring-inner {
+            width: 100%; height: 100%; border-radius: 50%; border: 3px solid black; 
+            overflow: hidden; background: #222;
+        }
+        .story-ring-inner img, .story-ring-inner video { width: 100%; height: 100%; object-fit: cover; }
+        
+        .add-story-btn { 
+            background: #222; border: 2px solid #444; width: 68px; height: 68px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; 
+        }
         
         /* STORY VIEWER */
         #story-viewer { position: fixed; inset: 0; z-index: 20000; background: black; display: flex; flex-direction: column; }
@@ -110,15 +108,21 @@
         .story-dash { flex: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
         .story-fill { height: 100%; background: white; width: 0%; }
         
+        /* FACEBOOK STYLE PROFILE */
+        .fb-cover { height: 120px; background: linear-gradient(to right, #333, #555); border-radius: 12px 12px 0 0; position: relative; }
+        .fb-avatar { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #111; position: absolute; bottom: -40px; left: 20px; object-fit: cover; background: #000; }
+        .fb-info { padding-left: 110px; padding-top: 10px; }
+        .fb-post { background: #111; border-radius: 12px; margin-bottom: 12px; padding: 12px; border: 1px solid #333; }
+
         /* BIG POST VIEWER */
         #post-view-modal { z-index: 15000; }
         .post-big-img { max-height: 60vh; width: 100%; object-fit: contain; background: black; }
         
         /* ONLINE STATUS */
-        .online-dot { width: 10px; height: 10px; background: #10b981; border-radius: 50%; border: 2px solid black; position: absolute; bottom: 0; right: 0; }
-        .offline-dot { width: 10px; height: 10px; background: #6b7280; border-radius: 50%; border: 2px solid black; position: absolute; bottom: 0; right: 0; }
+        .online-badge { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 20px; border: 1px solid #333; }
+        .online-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 5px #10b981; }
 
-        /* GAMES & CHAT */
+        /* CHAT & GAMES */
         #golf-canvas, #bowl-canvas { border-radius: 12px; border: 2px solid #333; touch-action: none; background-size: cover; width: 100%; height: auto; aspect-ratio: 3/4; }
         #chat-history, #bot-history { height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
         .chat-bubble { padding: 10px 14px; border-radius: 16px; font-size: 13px; max-width: 85%; word-wrap: break-word; }
@@ -128,24 +132,28 @@
 </head>
 <body>
 
-    <div id="auth-overlay" class="">
-        <div class="text-center p-8 max-w-md w-full">
-            <h1 class="text-5xl font-black mb-2 uppercase rainbow-text tracking-tighter" style="line-height: 1;">Tomboy<br>Colorverse</h1>
-            <p class="text-gray-400 text-sm mb-12">The Creative Universe.</p>
-            
-            <div class="flex flex-col gap-4">
-                <button onclick="window.triggerLogin()" class="w-full py-4 rounded-full text-xl font-bold bg-white text-black hover:scale-105 transition-transform">Log In</button>
-                <button onclick="window.triggerSignup()" class="w-full py-4 rounded-full text-xl font-bold border-2 border-white text-white hover:scale-105 transition-transform">Create Account</button>
-            </div>
+    <div id="auth-overlay" class="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center p-6 text-center">
+        <h1 class="text-5xl font-black mb-2 uppercase rainbow-text tracking-tighter" style="line-height: 1;">Tomboy<br>Colorverse</h1>
+        <p class="text-gray-400 text-sm mb-12">The Creative Universe.</p>
+        
+        <div class="flex flex-col gap-4 w-full max-w-xs">
+            <button onclick="window.triggerLogin()" class="w-full py-4 rounded-full text-xl font-bold bg-white text-black hover:scale-105 transition-transform">Log In</button>
+            <button onclick="window.triggerSignup()" class="w-full py-4 rounded-full text-xl font-bold rainbow-bg text-black hover:scale-105 transition-transform">Create Account</button>
+            <div class="h-px bg-gray-800 my-4"></div>
+            <button onclick="window.guestLogin()" class="text-gray-500 text-sm hover:text-white transition-colors">Enter as Guest (Demo)</button>
         </div>
     </div>
 
-    <header class="p-4 flex justify-between items-center sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-gray-800">
+    <header class="p-4 flex justify-between items-center sticky top-0 z-50 bg-[#0f0f10]/95 backdrop-blur border-b border-gray-800">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded bg-gradient-to-tr from-pink-500 to-yellow-400 flex items-center justify-center font-black text-xs text-black">LV</div>
             <h1 class="font-black text-lg tracking-tighter rainbow-text uppercase">Tomboy Colorverse</h1>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="online-badge">
+                <div class="online-dot"></div>
+                <span class="text-[10px] font-bold text-green-400" id="online-count">1 Online</span>
+            </div>
             <div class="relative cursor-pointer" onclick="window.openNotifications()">
                 <i class="fa-regular fa-bell text-xl text-white"></i>
                 <div id="notif-badge" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
@@ -188,7 +196,9 @@
         <h2 class="text-xs font-bold text-gray-400 mb-1 uppercase tracking-widest">Stories</h2>
         <div class="stories-container" id="stories-list">
             <div class="story-wrapper">
-                <div class="add-story-btn cursor-pointer" onclick="window.launchStoryUpload()"><i class="fa-solid fa-plus"></i></div>
+                <div class="add-story-btn cursor-pointer" onclick="window.launchStoryUpload()">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
                 <span class="text-[10px] text-gray-400">Add</span>
             </div>
         </div>
@@ -231,9 +241,7 @@
                     <button onclick="window.addReaction('🔥')" class="text-2xl">🔥</button>
                     <button onclick="window.addReaction('❤️')" class="text-2xl">❤️</button>
                     <button onclick="window.addReaction('😍')" class="text-2xl">😍</button>
-                    <button onclick="window.addReaction('😂')" class="text-2xl">😂</button>
                     <button onclick="window.addReaction('🦄')" class="text-2xl">🦄</button>
-                    <button onclick="window.addReaction('🐶')" class="text-2xl">🐶</button>
                     <input type="text" placeholder="+" class="w-8 bg-gray-800 text-white text-center rounded" maxlength="2" onchange="window.addReaction(this.value)">
                 </div>
                 <p id="view-post-caption" class="text-sm text-gray-300 font-bold mb-1"></p>
@@ -245,34 +253,35 @@
                         <button onclick="window.addComment()" class="text-blue-500 font-bold text-xs uppercase">Post</button>
                     </div>
                 </div>
-                <p id="view-post-time" class="text-[10px] text-gray-600 mt-1 uppercase">2 hours ago</p>
-                <input type="hidden" id="current-viewing-id">
+                <p id="view-post-time" class="text-[10px] text-gray-600 mt-1 uppercase">Just now</p>
             </div>
         </div>
     </div>
 
     <div id="profile-modal" class="hidden modal-overlay">
-        <div class="bg-[#111] border border-pink-500 rounded-3xl w-full max-w-md modal-box flex flex-col relative">
-            <div class="p-6 pb-2 text-center">
-                <button onclick="window.toggleProfile()" class="absolute top-4 right-4 text-gray-400 p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
-                <div class="relative inline-block">
-                    <div onclick="window.triggerAvatarUpload()" class="cursor-pointer">
-                        <img id="profile-img-large" src="" class="w-24 h-24 rounded-full border-4 border-pink-500 object-cover mx-auto mb-4">
-                    </div>
-                    <div class="online-dot w-4 h-4 right-2 bottom-4 border-4 border-[#111]"></div>
-                </div>
-                <div class="flex items-center justify-center gap-2 mb-2">
-                    <input type="text" id="profile-name-input" class="bg-transparent text-2xl font-bold text-white text-center w-40 border-b border-gray-700 focus:border-pink-500 outline-none" value="Guest">
-                    <button onclick="window.saveProfileName()" class="text-pink-500 text-xs font-bold uppercase border border-pink-500 px-2 py-1 rounded">Save</button>
-                </div>
-                <button onclick="window.openDMs()" id="dm-btn" class="hidden w-full bg-blue-600 text-white py-2 rounded-full font-bold mb-4">Message</button>
+        <div class="bg-[#151515] w-full max-w-md modal-box flex flex-col relative rounded-xl overflow-hidden">
+            <div class="fb-cover">
+                <button onclick="window.toggleProfile()" class="absolute top-4 right-4 bg-black/50 text-white rounded-full p-2 w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+                <img id="profile-img-large" src="" class="fb-avatar" onclick="window.triggerAvatarUpload()">
             </div>
-            <div class="flex border-b border-gray-800">
-                <button onclick="window.switchProfileTab('posts')" class="flex-1 py-3 text-sm font-bold text-pink-500 border-b-2 border-pink-500" id="tab-btn-posts">Posts</button>
+            <div class="fb-info mb-4">
+                <div class="flex justify-between items-center pr-4">
+                    <h2 class="text-2xl font-bold text-white mb-1"><input type="text" id="profile-name-input" class="bg-transparent outline-none w-full" value="Guest"></h2>
+                    <button onclick="window.saveProfileName()" class="text-xs bg-gray-700 px-3 py-1 rounded-lg text-white">Save</button>
+                </div>
+                <p class="text-gray-400 text-xs" id="profile-stats">0 Posts</p>
+                <button onclick="window.openDMs()" id="dm-btn" class="hidden mt-2 bg-blue-600 text-white text-xs py-2 px-4 rounded-lg font-bold">Message</button>
+            </div>
+            
+            <div class="h-px bg-gray-800 mx-4 mb-4"></div>
+            
+            <div class="flex px-4 border-b border-gray-800 mb-2">
+                <button onclick="window.switchProfileTab('posts')" class="flex-1 py-3 text-sm font-bold text-blue-500 border-b-2 border-blue-500" id="tab-btn-posts">Timeline</button>
                 <button onclick="window.switchProfileTab('settings')" class="flex-1 py-3 text-sm font-bold text-gray-500" id="tab-btn-settings">Settings</button>
             </div>
-            <div class="flex-1 bg-black p-2 rounded-b-3xl min-h-[300px]">
-                <div id="profile-tab-posts" class="grid grid-cols-2 gap-2"></div>
+            
+            <div class="flex-1 bg-[#151515] p-2 min-h-[300px]">
+                <div id="profile-tab-posts" class="flex flex-col gap-3"></div>
                 <div id="profile-tab-settings" class="hidden p-4 text-left">
                      <p class="text-xs text-gray-400 mb-1 font-bold uppercase text-center">AI Wallpaper (HD)</p>
                     <div class="flex gap-2 mb-3">
@@ -309,15 +318,15 @@
     </div>
 
     <div id="gif-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-purple-500 rounded-2xl p-6 w-full max-w-sm modal-box text-center"><h3 class="text-purple-400 font-bold text-2xl mb-4">GIFs</h3><div class="flex gap-2 mb-4"><input type="text" id="gif-search" placeholder="Search..." class="flex-1 bg-black border border-gray-700 rounded px-3 py-2 text-white"><button onclick="window.searchGIF()" class="bg-purple-600 text-white px-3 rounded font-bold">GO</button></div><div id="gif-results" class="bg-black p-2 rounded mb-4 flex flex-wrap justify-center text-gray-500 text-xs gap-1"></div><button onclick="window.closeGIF()" class="w-full bg-gray-800 text-white py-2 rounded">Cancel</button></div></div>
-    <div id="sticker-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-cyan-400 rounded-2xl p-4 w-full max-w-sm modal-box text-center"><h3 class="text-cyan-400 font-bold text-lg mb-2">Sticker</h3><div class="flex gap-2 mb-2"><input type="text" id="sticker-prompt" placeholder="Type: 'Neon Cat'..." class="flex-1 bg-black border border-gray-700 rounded px-2 text-white text-xs"><button onclick="window.generateStickerAI()" class="bg-cyan-600 text-white px-2 rounded font-bold text-xs min-w-[50px]">AI</button></div><img id="sticker-preview-img" class="w-48 h-48 object-contain mx-auto mb-2 border border-gray-800 bg-transparent"><div class="flex gap-2"><button onclick="window.postSticker('feed')" class="flex-1 bg-gray-800 text-white py-2 rounded">FEED</button><button onclick="window.postSticker('story')" class="flex-1 bg-cyan-400 text-black font-bold py-2 rounded">STORY</button></div><button onclick="window.closeStickerModal()" class="w-full mt-2 text-gray-500 text-xs">Cancel</button></div></div>
+    <div id="sticker-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-cyan-400 rounded-2xl p-4 w-full max-w-sm modal-box text-center"><h3 class="text-cyan-400 font-bold text-lg mb-2">Sticker</h3><div class="flex gap-2 mb-2"><input type="text" id="sticker-prompt" placeholder="Type: 'Neon Cat'..." class="flex-1 bg-black border border-gray-700 rounded px-2 text-white text-xs"><button id="sticker-gen-btn" onclick="window.generateStickerAI()" class="bg-cyan-600 text-white px-2 rounded font-bold text-xs min-w-[50px]">AI</button></div><img id="sticker-preview-img" class="w-48 h-48 object-contain mx-auto mb-2 border border-gray-800 bg-transparent"><div class="flex gap-2"><button onclick="window.postSticker('feed')" class="flex-1 bg-gray-800 text-white py-2 rounded">FEED</button><button onclick="window.postSticker('story')" class="flex-1 bg-cyan-400 text-black font-bold py-2 rounded">STORY</button></div><button onclick="window.closeStickerModal()" class="w-full mt-2 text-gray-500 text-xs">Cancel</button></div></div>
     <div id="ai-modal" class="hidden modal-overlay"><div class="bg-[#222] border-2 border-yellow-500 rounded-2xl p-6 w-full max-w-sm modal-box text-center"><h3 class="text-2xl font-bold text-yellow-500 mb-2">AI Art</h3><input type="text" id="ai-prompt" placeholder="Describe..." class="w-full bg-black border border-gray-600 rounded-lg p-3 text-white mb-4"><div class="flex gap-2"><button onclick="window.submitAI('feed')" class="flex-1 bg-gray-800 text-white py-2 rounded font-bold">FEED</button><button onclick="window.submitAI('story')" class="flex-1 bg-yellow-500 text-black py-2 rounded font-bold">STORY</button></div><button onclick="window.closeAIModal()" class="w-full mt-2 text-gray-400 text-sm">Cancel</button></div></div>
     <div id="music-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-pink-500 rounded-2xl p-5 w-full max-w-sm modal-box text-center flex flex-col"><h3 class="text-pink-500 font-bold text-2xl mb-2">Sonic</h3><div id="music-view-search" class="music-section flex-1 flex flex-col text-left"><div class="bg-gray-900 p-3 rounded-lg mb-4"><p class="text-gray-400 text-xs mb-2 text-center">YouTube Link:</p><div class="flex gap-2 mb-2"><input type="text" id="music-link-input" placeholder="https://..." class="flex-1 bg-black border border-gray-700 rounded px-2 text-white text-xs h-10"><button onclick="window.previewMusicLink()" class="bg-white text-black font-bold px-3 rounded text-xs h-10">LOAD</button></div></div><div id="music-player-preview" class="w-full h-32 bg-black mb-2 rounded border border-gray-700 flex items-center justify-center text-gray-500 text-xs relative overflow-hidden"><p>Preview</p></div><div class="flex gap-2 mt-auto"><input type="text" id="music-post-caption" placeholder="Title" class="flex-1 bg-black border border-gray-700 rounded px-2 text-white text-xs h-10"><button onclick="window.postMusicLink('feed')" class="bg-gray-800 text-white font-bold px-3 rounded text-xs h-10">FEED</button><button onclick="window.postMusicLink('story')" class="bg-pink-500 text-white font-bold px-3 rounded text-xs h-10">STORY</button></div></div><button onclick="window.closeMusicModal()" class="mt-4 text-xs text-gray-500 w-full py-2">Close</button></div></div>
     <div id="youtube-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-red-600 rounded-2xl p-6 w-full max-w-sm modal-box text-center"><h3 class="text-red-500 font-bold text-2xl mb-4">YouTube</h3><input type="text" id="yt-url" placeholder="Paste link..." class="w-full bg-black border border-gray-700 rounded-lg px-3 py-2 text-white mb-2"><button onclick="window.previewYT()" class="w-full bg-gray-700 text-white px-3 rounded font-bold mb-3">Check</button><div id="yt-preview" class="w-full aspect-video bg-black mb-4 rounded border border-gray-800 flex items-center justify-center text-gray-600 text-xs">Preview</div><input type="text" id="yt-caption" placeholder="Caption..." class="w-full bg-black border border-gray-700 rounded-lg px-3 py-2 text-white mb-4"><div class="flex gap-2"><button onclick="window.postYouTube('feed')" class="flex-1 bg-gray-800 text-white font-bold py-2 rounded">FEED</button><button onclick="window.postYouTube('story')" class="flex-1 bg-white text-black font-bold py-2 rounded">STORY</button></div><button onclick="window.closeYouTube()" class="w-full mt-2 text-gray-500 text-xs">Cancel</button></div></div>
     <div id="draw-modal" class="hidden modal-overlay"><div class="bg-white rounded-xl p-2 w-full max-w-sm modal-box relative flex flex-col"><div class="flex justify-between items-center mb-2 px-2"><h3 class="text-black font-bold">Draw</h3><button onclick="window.closeDrawer()" class="text-black"><i class="fa-solid fa-xmark"></i></button></div><div class="flex-1 relative bg-gray-100 border-2 border-gray-300 rounded-lg overflow-hidden touch-none h-[300px]"><canvas id="draw-canvas" class="w-full h-full cursor-crosshair"></canvas></div><div class="flex flex-col gap-2 mt-2 px-2 pb-2"><div class="flex justify-between items-center bg-gray-100 p-2 rounded-lg"><button onclick="window.setBrushMode('brush')" class="w-8 h-8 bg-black text-white rounded flex items-center justify-center"><i class="fa-solid fa-paintbrush"></i></button><button onclick="window.setBrushMode('eraser')" class="w-8 h-8 bg-white border border-gray-300 rounded flex items-center justify-center text-red-500"><i class="fa-solid fa-eraser"></i></button><input type="color" id="color-picker" class="w-8 h-8 border-none rounded cursor-pointer" value="#000000" onchange="window.updatePen()"><button onclick="window.undoDraw()" class="w-8 h-8 bg-gray-300 rounded flex items-center justify-center"><i class="fa-solid fa-rotate-left"></i></button></div><div class="flex gap-2"><button onclick="window.saveDrawing('feed')" class="flex-1 bg-black text-white text-xs py-3 rounded font-bold">FEED</button><button onclick="window.saveDrawing('story')" class="flex-1 bg-gray-200 text-black text-xs py-3 rounded font-bold">STORY</button></div></div></div></div>
-    <div id="quote-modal" class="hidden modal-overlay"><div class="bg-[#1a1a1a] border-2 border-white rounded-2xl p-6 w-full max-w-sm modal-box"><h3 class="text-white font-bold text-lg mb-4 text-center">Quote</h3><div id="quote-preview-area" class="w-full bg-black border border-gray-700 rounded-xl p-4 mb-4 min-h-[100px] flex items-center justify-center text-center"><p id="quote-preview-text" class="text-white text-xl font-bold" style="font-family: 'Permanent Marker'">Preview...</p></div><textarea id="quote-text" placeholder="Type vibe..." class="w-full bg-black border border-gray-700 text-white rounded-xl p-4 mb-4 h-24" oninput="window.updateQuotePreview()"></textarea><p class="text-xs text-gray-500 mb-2">Color & BG:</p><div class="flex gap-2 mb-4"><button onclick="window.setQuoteStyle('rainbow')" class="flex-1 h-8 rounded bg-gradient-to-r from-pink-500 to-yellow-500 border border-gray-600"></button><button onclick="window.setQuoteStyle('white')" class="flex-1 h-8 rounded bg-white border border-gray-600"></button><input type="color" class="flex-1 h-8 rounded border border-gray-600" onchange="window.setQuoteBg('color', this.value)"></div><div class="flex gap-2"><button onclick="window.publishQuote('feed')" class="flex-1 bg-gray-800 text-white py-2 rounded font-bold">FEED</button><button onclick="window.publishQuote('story')" class="flex-1 bg-white text-black py-2 rounded font-bold">STORY</button></div><button onclick="window.closeQuoteStudio()" class="w-full mt-2 text-gray-500 text-xs">Cancel</button></div></div>
     <div id="web-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-white rounded-2xl p-6 w-full max-w-sm modal-box text-center"><h3 class="text-white font-bold text-2xl mb-2">Web</h3><input type="text" id="web-search-term" placeholder="Search..." class="w-full bg-gray-900 border border-gray-700 rounded px-4 py-3 text-white mb-4 font-bold"><div class="grid grid-cols-2 gap-3 mb-4"><button onclick="window.launchWeb('google')" class="bg-[#4285F4] text-white py-4 rounded-xl font-bold text-sm">Google</button><button onclick="window.launchWeb('images')" class="bg-[#EA4335] text-white py-4 rounded-xl font-bold text-sm">Images</button><button onclick="window.launchWeb('pinterest')" class="bg-[#E60023] text-white py-4 rounded-xl font-bold text-sm">Pinterest</button><button onclick="window.launchWeb('tiktok')" class="bg-[#000] border border-gray-600 text-white py-4 rounded-xl font-bold text-sm">TikTok</button></div><button onclick="window.closeWebModal()" class="w-full bg-gray-800 text-white py-3 rounded-xl font-bold text-xs mt-2">Close</button></div></div>
     <div id="bot-chat-modal" class="hidden modal-overlay"><div class="bg-[#111] border border-green-500 rounded-2xl p-4 w-full max-w-sm modal-box flex flex-col"><div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2"><h3 class="text-green-400 font-bold">Emerald</h3><button onclick="window.closeBotChat()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><div id="bot-history" class="flex-1 overflow-y-auto mb-2 text-sm text-gray-300"><div class="chat-bubble chat-theirs">Hi! Ask me anything.</div></div><div class="flex gap-2"><button onclick="window.triggerBotUpload()" class="bg-gray-800 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-image"></i></button><input type="text" id="bot-input" class="flex-1 bg-gray-900 text-white rounded-full px-4 py-2 border border-gray-700"><button onclick="window.sendBotMessage()" class="bg-green-500 text-black w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button></div></div></div><input type="hidden" role="uploadcare-uploader" id="bot-upload-widget" />
     <div id="group-chat-modal" class="hidden modal-overlay"><div class="bg-[#111] border border-blue-500 rounded-2xl p-4 w-full max-w-sm modal-box flex flex-col h-[500px]"><div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2"><h3 class="text-blue-400 font-bold">Lounge</h3><button onclick="window.closeGroupChat()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><div id="group-chat-history" class="flex-1 overflow-y-auto mb-2 pr-1"></div><div class="flex gap-2"><input type="text" id="group-chat-input" placeholder="Message..." class="flex-1 bg-gray-900 text-white rounded-full px-4 py-2 border border-gray-700"><button onclick="window.sendGroupMessage()" class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button></div></div></div>
+    <div id="quote-modal" class="hidden modal-overlay"><div class="bg-[#1a1a1a] border-2 border-white rounded-2xl p-6 w-full max-w-sm modal-box"><h3 class="text-white font-bold text-lg mb-4 text-center">Quote</h3><div id="quote-preview-area" class="w-full bg-black border border-gray-700 rounded-xl p-4 mb-4 min-h-[100px] flex items-center justify-center text-center"><p id="quote-preview-text" class="text-white text-xl font-bold" style="font-family: 'Permanent Marker'">Preview...</p></div><textarea id="quote-text" placeholder="Type vibe..." class="w-full bg-black border border-gray-700 text-white rounded-xl p-4 mb-4 h-24" oninput="window.updateQuotePreview()"></textarea><p class="text-xs text-gray-500 mb-2">Color & BG:</p><div class="flex gap-2 mb-4"><button onclick="window.setQuoteStyle('rainbow')" class="flex-1 h-8 rounded bg-gradient-to-r from-pink-500 to-yellow-500 border border-gray-600"></button><button onclick="window.setQuoteStyle('white')" class="flex-1 h-8 rounded bg-white border border-gray-600"></button><input type="color" class="flex-1 h-8 rounded border border-gray-600" onchange="window.setQuoteBg('color', this.value)"></div><div class="flex gap-2"><button onclick="window.publishQuote('feed')" class="flex-1 bg-gray-800 text-white py-2 rounded font-bold">FEED</button><button onclick="window.publishQuote('story')" class="flex-1 bg-white text-black py-2 rounded font-bold">STORY</button></div><button onclick="window.closeQuoteStudio()" class="w-full mt-2 text-gray-500 text-xs">Cancel</button></div></div>
     <div id="golf-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-green-500 rounded-2xl p-4 w-full max-w-sm modal-box text-center relative flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-green-400 font-bold text-xl">Neon Golf</h3><button onclick="window.closeGolfGame()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><div id="golf-menu" class="flex-1 flex flex-col justify-center gap-3"><button onclick="window.startGolfGame()" class="w-full bg-green-500 text-black font-black py-4 rounded-xl text-lg shadow-lg">PLAY</button><div class="mt-4"><p class="text-xs text-gray-400 font-bold uppercase mb-2">Leaderboard</p><div id="golf-leaderboard" class="text-xs text-left bg-black p-2 rounded h-24 overflow-y-auto border border-gray-800"></div></div></div><div id="golf-game-area" class="hidden flex-1 flex flex-col items-center"><div class="flex justify-between text-xs text-white mb-2 px-2 w-full"><span id="golf-level-display">Hole 1</span><span id="golf-score-display">0</span></div><canvas id="golf-canvas" width="300" height="400"></canvas><button onclick="window.resetGolfLevel()" class="mt-2 bg-gray-800 text-white py-2 rounded text-xs w-full">Reset</button></div></div></div>
     <div id="bowling-modal" class="hidden modal-overlay"><div class="bg-[#111] border-2 border-yellow-500 rounded-2xl p-4 w-full max-w-sm modal-box text-center relative flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-yellow-500 font-bold text-xl">Bowl</h3><button onclick="window.closeBowlingGame()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><div id="bowling-menu" class="flex-1 flex flex-col justify-center gap-3"><button onclick="window.startBowlingGame()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl text-lg shadow-lg">BOWL</button><div class="mt-4"><p class="text-xs text-gray-400 font-bold uppercase mb-2">Leaderboard</p><div id="bowling-leaderboard" class="text-xs text-left bg-black p-2 rounded h-24 overflow-y-auto border border-gray-800"></div></div></div><div id="bowling-game-area" class="hidden flex-1 flex flex-col items-center"><div class="flex justify-between text-xs text-white mb-2 px-2 w-full"><span id="bowl-score">0</span><span><span id="bowl-frame">1</span>/10</span></div><canvas id="bowl-canvas" width="300" height="400"></canvas><p class="text-gray-500 text-[10px] mt-2">Swipe Up!</p><button onclick="window.resetBowlingBall()" class="mt-2 bg-gray-800 text-white py-2 rounded text-xs w-full">Reset</button></div></div></div>
 
@@ -346,7 +355,15 @@
         // AUTH TRIGGERS
         window.triggerLogin = () => netlifyIdentity.open('login');
         window.triggerSignup = () => netlifyIdentity.open('signup');
+        window.guestLogin = () => {
+            currentUser = "Demo User";
+            currentEmail = "demo@colorverse.com";
+            document.getElementById('auth-overlay').classList.add('hidden');
+            window.updateOnlineCount();
+        };
         window.logout = () => { localStorage.clear(); netlifyIdentity.logout(); location.reload(); };
+
+        if(typeof netlifyIdentity !== 'undefined') netlifyIdentity.init();
 
         // UPLOAD WRAPPERS (STRICT SEPARATION)
         window.launchFeedUpload = () => { uploadcare.SingleWidget('#feed-widget').openDialog(null, { tabs: 'file camera url facebook instagram' }); };
@@ -360,15 +377,7 @@
             document.getElementById('sticker-preview-img').src = generatedStickerUrl;
         };
         window.loadStickerImage = (input) => { 
-            const f = input.files[0]; 
-            if(f){ 
-                const r = new FileReader(); 
-                r.onload = (e) => { 
-                    generatedStickerUrl = e.target.result; 
-                    document.getElementById('sticker-preview-img').src = generatedStickerUrl; 
-                }; 
-                r.readAsDataURL(f); 
-            } 
+            const f = input.files[0]; if(f){ const r = new FileReader(); r.onload = (e) => { generatedStickerUrl = e.target.result; document.getElementById('sticker-preview-img').src = generatedStickerUrl; }; r.readAsDataURL(f); } 
         };
 
         // THEME & AI
@@ -384,7 +393,7 @@
             img.onload = function() { document.body.style.backgroundImage = `url(${url})`; localStorage.setItem('app_theme', `url(${url})`); btn.innerText = "Set!"; setTimeout(() => { btn.innerText = "CREATE"; btn.style.opacity = "1"; }, 2000); };
         };
 
-        // MODAL CONTROLS
+        // MODALS
         window.openMusicModal = () => { document.getElementById('music-modal').classList.remove('hidden'); window.showSection('search'); };
         window.closeMusicModal = () => document.getElementById('music-modal').classList.add('hidden');
         window.showSection = (id) => { document.querySelectorAll('.music-section').forEach(el => el.classList.add('hidden')); document.getElementById('music-view-'+id).classList.remove('hidden'); };
@@ -502,9 +511,7 @@
                 vid.playsInline = true;
                 vid.className = "max-w-full max-h-full";
                 
-                // SNAPCHAT LOOP LOGIC
                 vid.onended = () => window.nextStory();
-                
                 vid.onloadedmetadata = () => {
                     bar.style.transition = `width ${vid.duration}s linear`;
                     bar.style.width = '100%';
@@ -527,24 +534,23 @@
         // GIF SEARCH
         window.searchGIF = async () => { 
             const q = document.getElementById('gif-search').value; if(!q) return; 
-            const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=0UTRbFtkMxAplrohufYco5IY74U8hOes&q=${encodeURIComponent(q)}&limit=9`); 
-            const data = await res.json(); 
-            const container = document.getElementById('gif-results'); 
-            container.innerHTML = ''; 
-            data.data.forEach(gif => { 
-                const img = document.createElement('img'); 
-                img.src = gif.images.fixed_height_small.url; 
-                img.className = 'w-16 h-16 object-cover rounded cursor-pointer'; 
-                img.onclick = () => { 
-                    if(confirm("Post to Feed? (Cancel for Story)")) {
-                        window.uploadToFeed({ type:'gif', url:gif.images.original.url, caption:"GIF" });
-                    } else {
-                        window.uploadToStory({ type:'gif', url:gif.images.original.url });
-                    }
-                    window.closeGIF(); 
-                }; 
-                container.appendChild(img); 
-            }); 
+            try {
+                const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=${encodeURIComponent(q)}&limit=9`); 
+                const data = await res.json(); 
+                const container = document.getElementById('gif-results'); 
+                container.innerHTML = ''; 
+                data.data.forEach(gif => { 
+                    const img = document.createElement('img'); 
+                    img.src = gif.images.fixed_height_small.url; 
+                    img.className = 'w-16 h-16 object-cover rounded cursor-pointer'; 
+                    img.onclick = () => { 
+                        if(confirm("Post to Feed? (Cancel for Story)")) window.uploadToFeed({ type:'gif', url:gif.images.original.url, caption:"GIF" });
+                        else window.uploadToStory({ type:'gif', url:gif.images.original.url });
+                        window.closeGIF(); 
+                    }; 
+                    container.appendChild(img); 
+                });
+            } catch(e) { alert("GIF search failed. Try again."); }
         };
         
         // DRAW
@@ -559,7 +565,6 @@
         function start(e) { saveState(); isDrawing=true; const r=canvas.getBoundingClientRect(); const x=(e.clientX||e.touches[0].clientX)-r.left; const y=(e.clientY||e.touches[0].clientY)-r.top; ctx.beginPath(); ctx.moveTo(x,y); draw(e); }
         canvas.addEventListener('mousedown', start); canvas.addEventListener('touchstart', start, {passive:false}); canvas.addEventListener('mousemove', draw); canvas.addEventListener('touchmove', draw, {passive:false}); canvas.addEventListener('mouseup', ()=>{isDrawing=false; ctx.beginPath()}); canvas.addEventListener('touchend', ()=>{isDrawing=false; ctx.beginPath()});
 
-        // GAMES
         const bowlCanvas = document.getElementById('bowl-canvas'); const bCtx = bowlCanvas.getContext('2d');
         let bowlState = { x: 150, y: 350, vx: 0, vy: 0, pins: [], score: 0, frame: 1, city: 'tokyo', ballColor: '#ff0000', dragging: false, startX: 0, startY: 0, gameOver: false };
         const initPins = () => { let pins = []; let startX = 150; let startY = 50; [1, 2, 3, 4].forEach((count, rIndex) => { for(let i=0; i<count; i++) { pins.push({x: startX + (i * 20) - ((count-1)*20/2), y: startY + (rIndex * 15), active: true}); } }); return pins; };
@@ -613,9 +618,9 @@
         const dmsRef = collection(db, "messages");
         const notifRef = collection(db, "notifications");
 
-        // --- POSTING FUNCTIONS ---
+        // --- POSTING FUNCTIONS (SEPARATE) ---
         window.uploadToFeed = async (data) => {
-            const payload = { ...data, author: currentUser, authorAvatar: currentAvatar, timestamp: Date.now(), likes: 0, comments: [] };
+            const payload = { ...data, author: currentUser, authorAvatar: currentAvatar, timestamp: Date.now(), likes: 0, comments: [], reactions: {} };
             await addDoc(postsRef, payload);
         };
 
@@ -722,9 +727,12 @@
             const contentDiv = document.getElementById('view-post-content');
             contentDiv.innerHTML = '';
             
+            // "Shield" Broken Images
+            const fallback = "onerror=\"this.style.display='none'\"";
+
             if(type === 'video') contentDiv.innerHTML = `<video src="${url}" controls class="post-big-img"></video>`;
             else if(type === 'youtube' || type === 'yt-music') contentDiv.innerHTML = `<iframe class="w-full h-64" src="https://www.youtube.com/embed/${url}" frameborder="0" allowfullscreen></iframe>`;
-            else contentDiv.innerHTML = `<img src="${url}" class="post-big-img">`;
+            else contentDiv.innerHTML = `<img src="${url}" class="post-big-img" ${fallback}>`;
 
             document.getElementById('view-post-avatar').src = avatar;
             document.getElementById('view-post-author').innerText = author;
@@ -735,11 +743,9 @@
             const timeStr = mins < 60 ? `${mins}m ago` : `${Math.floor(mins/60)}h ago`;
             document.getElementById('view-post-time').innerText = timeStr;
 
-            // Display Reactions
             const rDiv = document.getElementById('view-post-reactions');
-            rDiv.innerText = reactions ? JSON.stringify(reactions).replace(/[{}"]/g, '') : "No reactions yet";
+            rDiv.innerText = reactions ? Object.keys(reactions).map(k => k + ' ' + reactions[k]).join(' ') : "No reactions yet";
             
-            // Header click -> Profile
             document.getElementById('view-post-header').onclick = () => {
                 document.getElementById('post-view-modal').classList.add('hidden');
                 window.openPublicProfile(author, avatar);
@@ -758,16 +764,10 @@
                 let currentReactions = docSnap.data().reactions || {};
                 currentReactions[emoji] = (currentReactions[emoji] || 0) + 1;
                 await updateDoc(postRef, { reactions: currentReactions });
-                document.getElementById('view-post-reactions').innerText = JSON.stringify(currentReactions).replace(/[{}"]/g, '');
+                document.getElementById('view-post-reactions').innerText = Object.keys(currentReactions).map(k => k + ' ' + currentReactions[k]).join(' ');
                 
-                // NOTIFY
                 if(viewingPostUser !== currentUser) {
-                    await addDoc(notifRef, {
-                        to: viewingPostUser,
-                        from: currentUser,
-                        msg: `reacted ${emoji} to your post`,
-                        timestamp: Date.now()
-                    });
+                    await addDoc(notifRef, { to: viewingPostUser, from: currentUser, msg: `reacted ${emoji} to your post`, timestamp: Date.now() });
                 }
             }
         };
@@ -788,14 +788,8 @@
                 document.getElementById('comment-input').value = "";
                 window.loadComments(viewingPostId);
                 
-                // NOTIFY
                 if(viewingPostUser !== currentUser) {
-                    await addDoc(notifRef, {
-                        to: viewingPostUser,
-                        from: currentUser,
-                        msg: `commented: "${txt}"`,
-                        timestamp: Date.now()
-                    });
+                    await addDoc(notifRef, { to: viewingPostUser, from: currentUser, msg: `commented: "${txt}"`, timestamp: Date.now() });
                 }
             }
         };
@@ -816,7 +810,6 @@
             document.getElementById('dm-modal').classList.remove('hidden');
             document.getElementById('dm-recipient-name').innerText = recipient;
             
-            // Listen for messages between currentUser and recipient
             const q = query(dmsRef, orderBy("timestamp", "asc"));
             onSnapshot(q, (snapshot) => {
                 const hist = document.getElementById('dm-history');
@@ -865,15 +858,26 @@
             });
         };
 
+        // --- ONLINE COUNT LOGIC ---
+        window.updateOnlineCount = async () => {
+            // Simulate count based on recent activity (last 15 mins)
+            const fifteenMinsAgo = Date.now() - (15 * 60 * 1000);
+            const q = query(usersRef, orderBy("lastSeen", "desc"));
+            onSnapshot(q, (snapshot) => {
+                let count = 0;
+                snapshot.forEach(doc => {
+                    if(doc.data().lastSeen > fifteenMinsAgo) count++;
+                });
+                document.getElementById('online-count').innerText = (count || 1) + " Online";
+            });
+        };
+
         // --- AUTH ---
         if (window.netlifyIdentity) { 
             window.netlifyIdentity.on("login", async (u) => { 
                 currentEmail = u.email; currentUser = u.user_metadata.full_name; 
                 localStorage.setItem('tomboy_email', currentEmail); localStorage.setItem('tomboy_user', currentUser);
                 document.getElementById('auth-overlay').classList.add('hidden'); // REMOVE OVERLAY
-                document.getElementById('auth-buttons').classList.add('hidden');
-                document.getElementById('logout-btn').classList.remove('hidden');
-                document.getElementById('signup-page-modal').classList.add('hidden');
                 
                 const docSnap = await getDoc(doc(db, "users", currentEmail));
                 if (docSnap.exists()) {
@@ -884,8 +888,8 @@
                     document.getElementById('profile-name-input').value = currentUser;
                 }
                 
-                // Live Status
                 await setDoc(doc(db, "users", currentEmail), { status: 'online', lastSeen: Date.now() }, { merge: true });
+                window.updateOnlineCount();
             }); 
             window.netlifyIdentity.on("logout", () => { currentUser = "Guest"; currentEmail = ""; localStorage.clear(); window.location.reload(); }); 
         }
@@ -921,15 +925,17 @@
                 const div = document.createElement('div'); 
                 div.className = 'break-inside-avoid mb-4 relative group rounded-xl overflow-hidden border border-gray-800 bg-[#111]';
                 let content = '';
+                const fallback = "onerror=\"this.style.display='none'\""; // Hide broken images
+
                 if (p.type === 'youtube' || p.type === 'yt-music') content = `<iframe class="w-full aspect-video" src="https://www.youtube.com/embed/${p.url}" frameborder="0"></iframe>`;
                 else if (p.type === 'text') content = `<div class="p-6 text-center min-h-[150px] flex items-center justify-center" style="background:${p.bgValue}"><p class="text-xl font-bold" style="color:${p.color}">${p.text}</p></div>`;
                 else if (p.type === 'video') content = `<video src="${p.url}" class="w-full" controls playsinline></video>`;
-                else content = `<img src="${p.url}" class="w-full object-cover">`;
+                else content = `<img src="${p.url}" class="w-full object-cover" ${fallback}>`;
                 
                 // Render Reactions Inline
                 const reacts = p.reactions ? Object.keys(p.reactions).map(k => `${k} ${p.reactions[k]}`).join(' ') : '';
 
-                div.innerHTML = `<div class="p-2 flex items-center justify-between bg-[#111]"><div class="flex items-center gap-2"><img src="${p.authorAvatar}" class="w-6 h-6 rounded-full object-cover"><span class="text-xs text-gray-400 font-bold">${p.author}</span></div></div><div onclick="window.viewPost('${p.id}', '${p.url}', '${p.type}', '${p.caption}', '${p.authorAvatar}', '${p.author}', ${JSON.stringify(p.reactions || {})}, ${p.timestamp})">${content}</div><div class="bg-[#111] p-2 px-3 border-t border-gray-800 flex justify-between items-center"><span class="text-[10px] text-gray-500 uppercase font-bold truncate w-24">${p.caption}</span><span class="text-xs text-gray-400">${reacts}</span></div>`;
+                div.innerHTML = `<div class="p-2 flex items-center justify-between bg-[#111]"><div class="flex items-center gap-2"><img src="${p.authorAvatar}" class="w-6 h-6 rounded-full object-cover" ${fallback}><span class="text-xs text-gray-400 font-bold">${p.author}</span></div></div><div onclick="window.viewPost('${p.id}', '${p.url}', '${p.type}', '${p.caption}', '${p.authorAvatar}', '${p.author}', ${JSON.stringify(p.reactions || {})}, ${p.timestamp})">${content}</div><div class="bg-[#111] p-2 px-3 border-t border-gray-800 flex justify-between items-center"><span class="text-[10px] text-gray-500 uppercase font-bold truncate w-24">${p.caption}</span><span class="text-xs text-gray-400">${reacts}</span></div>`;
                 grid.appendChild(div);
             }); 
         });
@@ -941,4 +947,5 @@
     </script>
 </body>
 </html>
+
 <!-- update for github pages -->
